@@ -1,0 +1,7 @@
+name: ripple-lib-dart
+dependencies:
+  bignum: any
+  browser: any
+  cryptoutils: any
+  crypto: any
+  decimal: '<1.0.0'
