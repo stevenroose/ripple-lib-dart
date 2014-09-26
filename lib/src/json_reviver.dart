@@ -17,9 +17,9 @@ abstract class JsonReviver {
 
   static Object revive(Object key, Object value) {
     if(key is! String)
-      return;
+      return value;
     if(!_revivers.containsKey(key))
-      return;
+      return value;
     return _revivers[key](value);
   }
 
