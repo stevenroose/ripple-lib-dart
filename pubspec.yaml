@@ -2,13 +2,11 @@ name: ripple-lib
 dependencies:
   bignum: any
   browser: any
-  cryptoutils:
-    path: /home/steven/git/dart-cryptoutils
+  cryptoutils: '>=0.1.9'
   crypto: any
-  decimal: #'>=0.1.2'
-    path: /home/steven/git/dart-decimal
+  decimal: '>=0.1.2'
   enums: '>=0.2.3'
   events: '>=0.1.0'
   event_emitter: '>=0.2.0'
   json_object:
-    path: /home/steven/git/dartwatch-JsonObject
+    git: https://github.com/stevenroose/dartwatch-JsonObject
