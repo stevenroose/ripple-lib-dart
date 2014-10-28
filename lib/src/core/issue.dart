@@ -1,4 +1,4 @@
-part of ripple;
+part of ripplelib.core;
 
 class Issue {
 

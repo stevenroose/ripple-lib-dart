@@ -1,11 +1,10 @@
-part of ripple;
-
+part of ripplelib.core;
 
 class Currency extends Hash160 {
 
   static final Currency XRP = new Currency(Hash160.ZERO_HASH);
 
-  Currency(List<int> bytes) : super(bytes) => _parse();
+  Currency(dynamic bytes) : super(bytes) { _parse(); }
 
   factory Currency.iso(String isoCode) {
     if(isoCode.length != 3)
@@ -51,15 +50,15 @@ class Currency extends Hash160 {
 
     var isZeroExceptInStandardPositions = true;
     for(var i = 0 ; i < 20 ; i++) {
-      isZeroExceptInStandardPositions = isZeroExceptInStandardPositions && (i == 12 || i == 13 || i == 14 || this[i] == 0);
+      isZeroExceptInStandardPositions = isZeroExceptInStandardPositions && (i == 12 || i == 13 || i == 14 || bytes[i] == 0);
     }
 
     if(isZeroExceptInStandardPositions) {
-      _isoCode = new String.fromCharCodes(this.getRange(12,15));
+      _isoCode = new String.fromCharCodes(bytes.getRange(12,15));
     } else {
-      _isoCode = new String.fromCharCodes(this.getRange(0,3));
-      _interestStart = new DateTime.fromMillisecondsSinceEpoch((this[4] << 24) + (this[5] << 16) + (this[6] <<  8) + this[7]);
-      _interestRate = this.buffer.asFloat64List(this.offsetInBytes, 8)[0];
+      _isoCode = new String.fromCharCodes(bytes.getRange(0,3));
+      _interestStart = new DateTime.fromMillisecondsSinceEpoch((bytes[4] << 24) + (bytes[5] << 16) + (bytes[6] <<  8) + bytes[7]);
+      _interestRate = this.buffer.asFloat64List(this.offsetInBytes, 1).single;
     }
   }
 
@@ -72,7 +71,7 @@ class Currency extends Hash160 {
 
   /* JSON */
 
-  Object toJson() => hasInterest ? toHex() : isoCode;
+  toJson() => hasInterest ? toHex() : isoCode;
   factory Currency.fromJson(var json) => json.length == 3 ? new Currency.iso(json) :
       new Currency(CryptoUtils.hexToBytes(json));
 

@@ -1,15 +1,16 @@
-part of ripple;
+part of ripplelib.core;
 
 
-class Account extends Hash160 {
+class Account extends Hash160 implements RippleSerializable {
 
   static final Account XRP_ISSUER = new Account(BigInteger.ZERO);
 
   factory Account(dynamic account) {
     // bytes
-    if(account is List<int>) {
+    if(account is List<int>)
       return new Account.fromBytes(account);
-    }
+    if(account is Hash160)
+      return new Account.fromBytes(account.asBytes());
     // string
     if(account is String) {
       // hex string of payload
@@ -22,7 +23,7 @@ class Account extends Hash160 {
     }
     // biginteger
     if(account is BigInteger) {
-      return new Account.fromBytes(new Hash160(account));
+      return new Account(new Hash160(account));
     }
   }
 
@@ -32,7 +33,7 @@ class Account extends Hash160 {
 
   String get address {
     if(_address == null)
-      _address = encodeAddress(this);
+      _address = encodeAddress(this.asBytes());
     return _address;
   }
 
@@ -41,8 +42,16 @@ class Account extends Hash160 {
 
   /* JSON */
 
-  Object toJson() => toString();
+  toJson() => toString();
   factory Account.fromJson(var json) => new Account(json);
+
+  /* RIPPLE SERIALIZATION */
+
+  void toByteSink(ByteSink sink) {
+    sink.add(bytes);
+  }
+
+  Uint8List toBytes() => bytes;
 
   /* Address encoding */
 

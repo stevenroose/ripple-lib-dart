@@ -1,0 +1,45 @@
+part of ripplelib.core;
+
+class AccountSet extends Transaction {
+
+  Map<Field, FieldRequirement> _createFormatMap() =>
+  super._createFormatMap()..addAll({
+      Field.ClearFlag:      FieldRequirement.OPTIONAL,
+      Field.Domain:         FieldRequirement.OPTIONAL,
+      Field.EmailHash:      FieldRequirement.OPTIONAL,
+      Field.MessageKey:     FieldRequirement.OPTIONAL,
+      Field.SetFlag:        FieldRequirement.OPTIONAL,
+      Field.TransferRate:   FieldRequirement.OPTIONAL,
+      Field.WalletLocator:  FieldRequirement.OPTIONAL,
+      Field.WalletSize:     FieldRequirement.OPTIONAL
+  });
+
+  int get clearFlag => _get(Field.ClearFlag);
+  set clearFlag(int clearFlag) => _put(Field.ClearFlag, clearFlag);
+
+  String get domain => _get(Field.Domain);
+  set domain(String domain) => _put(Field.Domain, domain);
+
+  Hash128 get emailHash => _get(Field.EmailHash);
+  set emailHash(Hash128 emailHash) => _put(Field.EmailHash, emailHash);
+
+  Key get messageKey => _get(Field.MessageKey);
+  set messageKey(Key messageKey) => _put(Field.MessageKey, messageKey);
+
+  int get setFlag => _get(Field.SetFlag);
+  set setFlag(int setFlag) => _put(Field.SetFlag, setFlag);
+
+  int get transferRate => _get(Field.TransferRate);
+  set transferRate(int transferRate) => _put(Field.TransferRate, transferRate);
+
+  Hash256 get walletLocator => _get(Field.WalletLocator);
+  set walletLocator(Hash256 walletLocator) => _put(Field.WalletLocator, walletLocator);
+
+  int get walletSize => _get(Field.WalletSize);
+  set walletSize(int walletSize) => _put(Field.WalletSize, walletSize);
+
+  AccountSet.fromJson(dynamic json) : super._fromJson(json) {
+    _assertTransactionType(TransactionType.ACCOUNT_SET);
+  }
+
+}
