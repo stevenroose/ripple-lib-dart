@@ -1,6 +1,6 @@
 part of ripplelib.remote;
 
-class Request extends JsonObject with Events {
+class Request extends RippleJsonObject with Events {
 
   static final EventType OnResponse = new EventType<Response>();
   static final EventType OnSuccess  = new EventType<Response>();

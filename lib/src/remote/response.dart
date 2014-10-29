@@ -1,6 +1,6 @@
 part of ripplelib.remote;
 
-class Response extends JsonObject {
+class Response extends RippleJsonObject {
 
   final Request request;
 

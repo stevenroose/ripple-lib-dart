@@ -1,6 +1,6 @@
 part of ripplelib.core;
 
-class FieldType<T> extends Enum {
+class FieldType extends Enum {
 
   static const FieldType UNKNOWN = const FieldType._(-2, Object);
   static const FieldType DONE = const FieldType._(-1, Object);
@@ -15,21 +15,20 @@ class FieldType<T> extends Enum {
   static const FieldType VARLEN = const FieldType._(7, Uint8List);
   static const FieldType ACCOUNT = const FieldType._(8, Account);
 
-  //TODO look into
   static const FieldType OBJECT = const FieldType._(14, RippleSerialization);
   static const FieldType ARRAY = const FieldType._(15, List);
 
   static const FieldType UINT8 = const FieldType._(16, int);
   static const FieldType HASH160 = const FieldType._(17, Hash160);
-  static const FieldType PATH_SET = const FieldType._(18, Set); //TODO
-  static const FieldType VECTOR256 = const FieldType._(19, List); //TODO
+  static const FieldType PATH_SET = const FieldType._(18, PathSet);
+  static const FieldType VECTOR256 = const FieldType._(19, List);
 
   static const FieldType TRANSACTION = const FieldType._(10001, Transaction);
   static const FieldType LEDGER_ENTRY = const FieldType._(10002, Object); //TODO
   static const FieldType VALIDATION = const FieldType._(10003, Object); //TODO
 
   final int id;
-  final Type nativeType;
+  final Type nativeType; // only used informative
   const FieldType._(this.id, this.nativeType);
 
   // required by Enum

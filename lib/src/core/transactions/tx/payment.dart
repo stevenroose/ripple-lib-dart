@@ -25,8 +25,8 @@ class Payment extends Transaction {
   Amount get sendMax => _get(Field.SendMax);
   set sendMax(Amount sendMax) => _put(Field.SendMax, sendMax);
 
-  List<Path> get paths => _get(Field.Paths);
-  set paths(List<Path> paths) => _put(Field.Paths, paths);
+  PathSet get paths => _get(Field.Paths);
+  set paths(PathSet paths) => _put(Field.Paths, paths);
 
   int get destinationTag => _get(Field.DestinationTag);
   set destinationTag(int destinationTag) => _put(Field.DestinationTag, destinationTag);

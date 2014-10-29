@@ -57,25 +57,29 @@ abstract class Utils {
 
 }
 
+@proxy
 class LRUMap<K,V> implements Map<K,V> {
 
   final int capacity;
   final Function onLRURemoved;
   final LinkedHashMap _map;
 
-  LRUMap({int this.capacity: 100, Function this.onLRURemoved}) : _map = new LinkedHashMap.identity();
+  LRUMap({int this.capacity: 100, Function this.onLRURemoved}) : _map = new LinkedHashMap<K,V>();
 
+  @override
   V operator [](K key) {
-    if(! _map.containsKey(key))
+    if(!_map.containsKey(key))
       return null;
     V value = _map.remove(key);
     _map[key] = value;
     return value;
   }
 
+  @override
   operator []=(K key, V value) {
     if(_map.length >= capacity && !_map.containsKey(key))
       _removeLRU();
+    _map.remove(key);
     return _map[key] = value;
   }
 
@@ -88,5 +92,4 @@ class LRUMap<K,V> implements Map<K,V> {
 
   @override
   noSuchMethod(Invocation inv) => reflect(_map).delegate(inv);
-
 }

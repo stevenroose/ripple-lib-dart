@@ -1,6 +1,6 @@
 part of ripplelib.core;
 
-class TransactionResult extends JsonObject implements Comparable<TransactionResult> {
+class TransactionResult extends RippleJsonObject implements Comparable<TransactionResult> {
 
   int ledgerIndex;
   Hash256 hash;
@@ -21,7 +21,9 @@ class TransactionResult extends JsonObject implements Comparable<TransactionResu
     this.Meta = meta;
   }
 
-  TransactionResult.fromJson(dynamic json) : super.fromMap(json, false);
+  TransactionResult.fromJson(dynamic json) : super.fromMap(json, false) {
+    hash = transaction.hash;
+  }
 
   int compareTo(TransactionResult other) {
     int i = this.ledgerIndex - other.ledgerIndex;

@@ -79,7 +79,7 @@ abstract class RippleSerialization implements RippleSerializable {
         sink.add(Utils.uintToBytesLE(value, 4));
         break;
       case FieldType.UINT64:
-        sink.add(Utils.bigIntegerToBytes(value, 8));
+        _writeUint64(sink, value);
         break;
       case FieldType.HASH128:
       case FieldType.HASH256:
@@ -90,19 +90,12 @@ abstract class RippleSerialization implements RippleSerializable {
         if(value is String) value = const Utf8Encoder().convert(value);
         sink.add(value);
         break;
-      case FieldType.AMOUNT:
-      case FieldType.ACCOUNT:
-      case FieldType.TRANSACTION:
-        value.toByteSink(sink);
-        break;
-      case FieldType.OBJECT:
-        value.toByteSink(sink);
-        break;
-      case FieldType.ARRAY:
-        value.toByteSink(sink);
-        sink.add(Field.ArrayEndMarker.bytes);
     //TODO complete
     }
+  }
+
+  void _writeUint64(ByteSink sink, BigInteger uint64) {
+    sink.add(Utils.bigIntegerToBytes(uint64, 8));
   }
 
 }

@@ -40,8 +40,11 @@ abstract class RippleSerializedObject extends RippleSerialization {
   @override
   dynamic toJson() {
     Map json = new Map();
-    for(Field field in _fields) {
-      json[field.jsonKey] = _get(field);
+    for(Field field in _fields.keys) {
+      var fieldValue = _get(field);
+      if(fieldValue is Uint8List)
+        fieldValue = CryptoUtils.bytesToHex(fieldValue);
+      json[field.jsonKey] = fieldValue;
     }
     return json;
   }

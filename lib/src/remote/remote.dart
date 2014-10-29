@@ -269,11 +269,11 @@ abstract class Remote extends Object with Events {
   }
 
   Future<Response> requestPathFind(Account sourceAccount, Account destinationAccount, Amount amount, List<Issue> currencies,
-                              {List<Path> paths, List<Account> bridges}) =>
+                              {PathSet paths, List<Account> bridges}) =>
       makePathFindRequest(sourceAccount, destinationAccount, amount, currencies, paths: paths, bridges: bridges).request();
 
   Request makePathFindRequest(Account sourceAccount, Account destinationAccount, Amount amount, List<Issue> currencies,
-                              {List<Path> paths, List<Account> bridges}) {
+                              {PathSet paths, List<Account> bridges}) {
     Request req = newRequest(Command.PATH_FIND);
     req.source_account = sourceAccount;
     req.destination_account = destinationAccount;

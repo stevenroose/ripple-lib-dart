@@ -16,8 +16,10 @@ import "package:json_object/json_object.dart";
 
 
 
-part "src/core/ripple_json_codec.dart";
 part "src/core/utils.dart";
+
+part "src/core/json/ripple_json_codec.dart";
+part "src/core/json/ripple_json_object.dart";
 
 part "src/core/account.dart";
 part "src/core/keypair.dart";
@@ -46,6 +48,7 @@ part "src/core/transactions/tx/trust_set.dart";
 part "src/core/amount.dart";
 part "src/core/currency.dart";
 part "src/core/issue.dart";
+part "src/core/path.dart";
 
 part "src/core/enums/engine_result.dart";
 part "src/core/enums/ledger_entry_type.dart";

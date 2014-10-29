@@ -54,7 +54,7 @@ abstract class AffectedNode extends RippleSerializedObject {
     throw new FormatException("Invalid JSON object: does not represent an AffectedNode");
   }
 
-  toJson() => {this.runtimeType.toString(): this};
+  toJson() => {this.runtimeType.toString(): super.toJson()};
 
   AffectedNode._fromJson(dynamic json) : super._fromJson(json);
 }

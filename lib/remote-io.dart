@@ -16,7 +16,7 @@ class ServerRemote extends Remote {
   Future<Remote> connect() {
     WebSocket.connect(url).then((socket) {
       socket.listen((message) {
-        print(message);
+//        print(message);
         handleMessage(const RippleJsonCodec().decode(message));
       });
       _ws = socket;
@@ -27,7 +27,7 @@ class ServerRemote extends Remote {
 
   @override
   void disconnect() {
-    this.emit(Remote.OnDisconnected, null);
+    emit(Remote.OnDisconnected, null);
     _ws.close();
   }
 

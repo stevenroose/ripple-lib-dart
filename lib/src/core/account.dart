@@ -10,7 +10,7 @@ class Account extends Hash160 implements RippleSerializable {
     if(account is List<int>)
       return new Account.fromBytes(account);
     if(account is Hash160)
-      return new Account.fromBytes(account.asBytes());
+      return new Account.fromBytes(account.bytes);
     // string
     if(account is String) {
       // hex string of payload
@@ -19,12 +19,13 @@ class Account extends Hash160 implements RippleSerializable {
       // base58check encoded "address"
       if(account.startsWith("r") && account.length >= 26)
         return new Account.fromBytes(decodeAddress(account));
-      throw new FormatException("String does not represent an Account");
+      throw new FormatException("String does not represent an Account: $account");
     }
     // biginteger
     if(account is BigInteger) {
       return new Account(new Hash160(account));
     }
+    throw new ArgumentError("Invalid account argument: $account");
   }
 
   Account.fromBytes(List<int> bytes) : super(bytes);
