@@ -6,7 +6,9 @@ class Response extends RippleJsonObject {
 
   Response(Request this.request, JsonObject message) : super.fromMap(message, false);
 
-  bool get succeeded => this.status == "success";
+  bool get successful => this.status == "success";
 
-  EngineResult get engineResult => this.result.engine_result;
+  JsonObject get result => this["result"];
+
+  String get error => this["error"];
 }

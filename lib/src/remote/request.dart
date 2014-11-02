@@ -29,7 +29,7 @@ class Request extends RippleJsonObject with Events {
   void handleResponse(JsonObject message) {
     response = new Response(this, message);
     emit(OnResponse, response);
-    emit(response.succeeded ? OnSuccess : OnError, response);
+    emit(response.successful ? OnSuccess : OnError, response);
   }
 
 }

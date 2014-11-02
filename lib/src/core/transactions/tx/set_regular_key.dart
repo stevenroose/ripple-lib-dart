@@ -2,10 +2,11 @@ part of ripplelib.core;
 
 class SetRegularKey extends Transaction {
 
-  Map<Field, FieldRequirement> _createFormatMap() =>
-  super._createFormatMap()..addAll({
+  @override
+  Map<Field, FieldRequirement> get _rippleFormat => _rippleFormatMap;
+  static final Map<Field, FieldRequirement> _rippleFormatMap = {
       Field.RegularKey: FieldRequirement.OPTIONAL
-  });
+  }..addAll(Transaction._rippleFormatMap);
 
   Key get regularKey => _get(Field.RegularKey);
   set regularKey(Key regularKey) => _put(Field.RegularKey, regularKey);

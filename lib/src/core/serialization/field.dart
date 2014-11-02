@@ -210,7 +210,10 @@ class Field extends Enum implements Comparable<Field> {
   }
 
   @override
-  bool operator ==(Field other) => other is Field && jsonKey == other.jsonKey;
+  String toString() => isJsonOnly ? jsonKey : super.toString();
+
+  @override
+  bool operator ==(other) => other is Field && jsonKey == other.jsonKey;
 
   @override
   int get hashCode => jsonKey.hashCode;

@@ -3,13 +3,13 @@ part of ripplelib.core;
 
 class TransactionType extends Enum implements RippleSerializable {
 
-  //TODO change codes
-  static const TransactionType ACCOUNT_SET      = const TransactionType._("AccountSet", 0);
-  static const TransactionType OFFER_CANCEL     = const TransactionType._("OfferCancel", 0);
-  static const TransactionType OFFER_CREATE     = const TransactionType._("OfferCreate", 0);
-  static const TransactionType PAYMENT          = const TransactionType._("Payment", 0);
-  static const TransactionType SET_REGULAR_KEY  = const TransactionType._("SetRegularKey", 0);
-  static const TransactionType TRUST_SET        = const TransactionType._("TrustSet", 0);
+  static const TransactionType INVALID          = const TransactionType._( -1, "Invalid");
+  static const TransactionType PAYMENT          = const TransactionType._(  0, "Payment");
+  static const TransactionType ACCOUNT_SET      = const TransactionType._(  3, "AccountSet");
+  static const TransactionType SET_REGULAR_KEY  = const TransactionType._(  5, "SetRegularKey");
+  static const TransactionType OFFER_CREATE     = const TransactionType._(  7, "OfferCreate");
+  static const TransactionType OFFER_CANCEL     = const TransactionType._(  8, "OfferCancel");
+  static const TransactionType TRUST_SET        = const TransactionType._( 20, "TrustSet");
 
   // required by Enum
   static TransactionType valueOf(String e) => Enum.valueOf(TransactionType, e);
@@ -18,7 +18,7 @@ class TransactionType extends Enum implements RippleSerializable {
   final String jsonValue;
   final int code;
 
-  const TransactionType._(this.jsonValue, this.code);
+  const TransactionType._(this.code, this.jsonValue);
 
   toJson() => jsonValue;
 

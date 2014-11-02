@@ -1,10 +1,25 @@
 part of ripplelib.core;
 
-class Currency extends Hash160 {
+class Currency extends Hash160 implements RippleSerializable {
 
-  static final Currency XRP = new Currency(Hash160.ZERO_HASH);
+  static final Currency XRP = new Currency._xrp();
+  Currency._xrp() : super(Hash160.ZERO_HASH), _isoCode = "XRP";
 
-  Currency(dynamic bytes) : super(bytes) { _parse(); }
+  factory Currency(dynamic currency) {
+    if(currency is String) {
+      if(currency.length == 3)
+        return new Currency.iso(currency);
+      if(currency.length == 20)
+        return new Currency.fromBytes(CryptoUtils.hexToBytes(currency));
+      throw new ArgumentError("Invalid currency string $currency");
+    }
+    if(currency is Uint8List) {
+      return new Currency.fromBytes(currency);
+    }
+    throw new ArgumentError("Invalid argument for a Currency: $currency");
+  }
+
+  Currency.fromBytes(dynamic bytes) : super(bytes) { _parse(); }
 
   factory Currency.iso(String isoCode) {
     if(isoCode.length != 3)
@@ -71,8 +86,16 @@ class Currency extends Hash160 {
 
   /* JSON */
 
+  @override
   toJson() => hasInterest ? toHex() : isoCode;
   factory Currency.fromJson(var json) => json.length == 3 ? new Currency.iso(json) :
       new Currency(CryptoUtils.hexToBytes(json));
 
+  /* RIPPLE SERIALIZATION */
+
+  @override
+  void toByteSink(ByteSink sink) => sink.add(bytes);
+
+  @override
+  Uint8List toBytes() => bytes;
 }

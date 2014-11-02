@@ -2,8 +2,9 @@ part of ripplelib.core;
 
 class AccountSet extends Transaction {
 
-  Map<Field, FieldRequirement> _createFormatMap() =>
-  super._createFormatMap()..addAll({
+  @override
+  Map<Field, FieldRequirement> get _rippleFormat => _rippleFormatMap;
+  static final Map<Field, FieldRequirement> _rippleFormatMap = {
       Field.ClearFlag:      FieldRequirement.OPTIONAL,
       Field.Domain:         FieldRequirement.OPTIONAL,
       Field.EmailHash:      FieldRequirement.OPTIONAL,
@@ -12,7 +13,7 @@ class AccountSet extends Transaction {
       Field.TransferRate:   FieldRequirement.OPTIONAL,
       Field.WalletLocator:  FieldRequirement.OPTIONAL,
       Field.WalletSize:     FieldRequirement.OPTIONAL
-  });
+  }..addAll(Transaction._rippleFormatMap);
 
   int get clearFlag => _get(Field.ClearFlag);
   set clearFlag(int clearFlag) => _put(Field.ClearFlag, clearFlag);

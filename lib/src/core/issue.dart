@@ -22,7 +22,7 @@ class Issue {
   String toString() => isNative ? currency.toString() : "$currency/$issuer";
 
   @override
-  bool operator ==(Issue other) => other is Issue &&
+  bool operator ==(Object other) => other is Issue &&
       other.issuer == issuer && other.currency == currency;
 
   @override

@@ -1,5 +1,7 @@
 part of ripplelib.core;
 
+
+//TODO unused, remove
 @proxy
 class SerializedList<T extends RippleSerializedObject> extends RippleSerialization implements List<T> {
 

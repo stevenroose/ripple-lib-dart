@@ -3,15 +3,16 @@ part of ripplelib.core;
 
 class Payment extends Transaction {
 
-  Map<Field, FieldRequirement> _createFormatMap() =>
-  super._createFormatMap()..addAll({
+  @override
+  Map<Field, FieldRequirement> get _rippleFormat => _rippleFormatMap;
+  static final Map<Field, FieldRequirement> _rippleFormatMap = {
       Field.Destination:    FieldRequirement.REQUIRED,
       Field.Amount:         FieldRequirement.REQUIRED,
       Field.Paths:          FieldRequirement.DEFAULT,
       Field.SendMax:        FieldRequirement.OPTIONAL,
       Field.DestinationTag: FieldRequirement.OPTIONAL,
       Field.InvoiceID:      FieldRequirement.OPTIONAL
-  });
+  }..addAll(Transaction._rippleFormatMap);
 
   TransactionType get type => TransactionType.PAYMENT;
   set type(TransactionType type) => throw new StateError("Cannot change transaction type");

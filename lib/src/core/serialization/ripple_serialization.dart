@@ -70,13 +70,13 @@ abstract class RippleSerialization implements RippleSerializable {
   void _writeNativeType(ByteSink sink, FieldType type, dynamic value) {
     switch(type) {
       case FieldType.UINT8:
-        sink.add(Utils.uintToBytesLE(value, 1));
+        sink.add(RippleUtils.uintToBytesLE(value, 1));
         break;
       case FieldType.UINT16:
-        sink.add(Utils.uintToBytesLE(value, 2));
+        sink.add(RippleUtils.uintToBytesLE(value, 2));
         break;
       case FieldType.UINT32:
-        sink.add(Utils.uintToBytesLE(value, 4));
+        sink.add(RippleUtils.uintToBytesLE(value, 4));
         break;
       case FieldType.UINT64:
         _writeUint64(sink, value);
@@ -95,7 +95,7 @@ abstract class RippleSerialization implements RippleSerializable {
   }
 
   void _writeUint64(ByteSink sink, BigInteger uint64) {
-    sink.add(Utils.bigIntegerToBytes(uint64, 8));
+    sink.add(RippleUtils.bigIntegerToBytes(uint64, 8));
   }
 
 }

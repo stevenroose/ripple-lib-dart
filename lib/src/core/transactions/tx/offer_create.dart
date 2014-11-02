@@ -2,13 +2,14 @@ part of ripplelib.core;
 
 class OfferCreate extends Transaction {
 
-  Map<Field, FieldRequirement> _createFormatMap() =>
-  super._createFormatMap()..addAll({
+  @override
+  Map<Field, FieldRequirement> get _rippleFormat => _rippleFormatMap;
+  static final Map<Field, FieldRequirement> _rippleFormatMap = {
       Field.TakerPays:      FieldRequirement.REQUIRED,
       Field.TakerGets:      FieldRequirement.REQUIRED,
       Field.Expiration:     FieldRequirement.OPTIONAL,
       Field.OfferSequence:  FieldRequirement.OPTIONAL
-  });
+  }..addAll(Transaction._rippleFormatMap);
 
   Amount get takerGets => _get(Field.TakerGets);
   set takerGets(Amount takerGets) => _put(Field.TakerGets, takerGets);

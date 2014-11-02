@@ -2,10 +2,11 @@ part of ripplelib.core;
 
 class OfferCancel extends Transaction {
 
-  Map<Field, FieldRequirement> _createFormatMap() =>
-  super._createFormatMap()..addAll({
+  @override
+  Map<Field, FieldRequirement> get _rippleFormat => _rippleFormatMap;
+  static final Map<Field, FieldRequirement> _rippleFormatMap = {
       Field.OfferSequence:  FieldRequirement.REQUIRED
-  });
+  }..addAll(Transaction._rippleFormatMap);
 
   int get offerSequence => _get(Field.OfferSequence);
   set offerSequence(int offerSequence) => _put(Field.OfferSequence, offerSequence);

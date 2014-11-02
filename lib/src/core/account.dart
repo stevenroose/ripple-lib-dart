@@ -18,7 +18,7 @@ class Account extends Hash160 implements RippleSerializable {
         return new Account.fromBytes(CryptoUtils.hexToBytes(account));
       // base58check encoded "address"
       if(account.startsWith("r") && account.length >= 26)
-        return new Account.fromBytes(decodeAddress(account));
+        return new Account.fromBytes(decodeAddress(account)).._address = account;
       throw new FormatException("String does not represent an Account: $account");
     }
     // biginteger
@@ -34,7 +34,7 @@ class Account extends Hash160 implements RippleSerializable {
 
   String get address {
     if(_address == null)
-      _address = encodeAddress(this.asBytes());
+      _address = encodeAddress(bytes);
     return _address;
   }
 
@@ -43,15 +43,18 @@ class Account extends Hash160 implements RippleSerializable {
 
   /* JSON */
 
+  @override
   toJson() => toString();
-  factory Account.fromJson(var json) => new Account(json);
+  factory Account.fromJson(dynamic json) => new Account(json);
 
   /* RIPPLE SERIALIZATION */
 
+  @override
   void toByteSink(ByteSink sink) {
     sink.add(bytes);
   }
 
+  @override
   Uint8List toBytes() => bytes;
 
   /* Address encoding */
@@ -60,10 +63,10 @@ class Account extends Hash160 implements RippleSerializable {
   static const String ALPHABET_ACCOUNT = "rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz";
 
   static String encodeAddress(List<int> bytes) =>
-    new Base58CheckEncoder(ALPHABET_ACCOUNT, Utils.sha256Digest).convert(new Base58CheckPayload(VERSION_ACCOUNT, bytes));
+    new Base58CheckEncoder(ALPHABET_ACCOUNT, RippleUtils.sha256Digest).convert(new Base58CheckPayload(VERSION_ACCOUNT, bytes));
 
   static List<int> decodeAddress(String address) {
-    Base58CheckPayload pl = new Base58CheckDecoder(ALPHABET_ACCOUNT, Utils.sha256Digest).convert(address);
+    Base58CheckPayload pl = new Base58CheckDecoder(ALPHABET_ACCOUNT, RippleUtils.sha256Digest).convert(address);
     if(pl.version != VERSION_ACCOUNT || pl.payload.length != 20)
       throw new FormatException("Invalid Base58Check account address encoding");
     return pl.payload;

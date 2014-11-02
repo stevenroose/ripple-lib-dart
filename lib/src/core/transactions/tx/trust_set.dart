@@ -2,12 +2,13 @@ part of ripplelib.core;
 
 class TrustSet extends Transaction {
 
-  Map<Field, FieldRequirement> _createFormatMap() =>
-  super._createFormatMap()..addAll({
+  @override
+  Map<Field, FieldRequirement> get _rippleFormat => _rippleFormatMap;
+  static final Map<Field, FieldRequirement> _rippleFormatMap = {
       Field.QualityIn:    FieldRequirement.OPTIONAL,
       Field.QualityOut:   FieldRequirement.OPTIONAL,
       Field.LimitAmount:  FieldRequirement.OPTIONAL
-  });
+  }..addAll(Transaction._rippleFormatMap);
 
   int get qualityIn => _get(Field.QualityIn);
   set qualityIn(int qualityIn) => _put(Field.QualityIn, qualityIn);

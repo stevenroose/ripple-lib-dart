@@ -1,6 +1,6 @@
 part of ripplelib.core;
 
-abstract class Utils {
+abstract class RippleUtils {
 
 
   /**
@@ -17,9 +17,9 @@ abstract class Utils {
    *
    * Only powers of 1 or higher are allowed.
    */
-  static dynamic pow(dynamic value, int exponent) {
-    while(exponent-- > 1)
-      value = value * value;
+  static dynamic timesPowerOfTen(dynamic value, dynamic ten, int exponent) {
+    while(exponent-- > 0)
+      value = value * ten;
     return value;
   }
 
@@ -53,6 +53,25 @@ abstract class Utils {
     int length = min(biBytes.length, numBytes);
     bytes.setRange(numBytes - length, numBytes, biBytes.sublist(start, start + length));
     return bytes;
+  }
+
+  /* RIPPLE TIME */
+
+  static final DateTime RIPPLE_EPOCH = new DateTime.utc(2000, 1, 1, 0, 0, 0, 0);
+
+  /**
+   * Convert milliseconds since the Ripple epoch to a [DateTime] object.
+   */
+  static DateTime dateTimeFromSecondsSinceRippleEpoch(int secondsSinceRippleEpoch) =>
+      RIPPLE_EPOCH.add(new Duration(seconds: secondsSinceRippleEpoch));
+
+  /**
+   * Get the milliseconds since thr Ripple epoch from this date.
+   */
+  static int getSecondsSinceRippleEpoch(DateTime dateTime) {
+    if(dateTime.isBefore(RIPPLE_EPOCH))
+      throw new ArgumentError("Given time was before the Ripple epoch: $dateTime");
+    return dateTime.difference(RIPPLE_EPOCH).inSeconds;
   }
 
 }

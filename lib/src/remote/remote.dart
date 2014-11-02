@@ -3,20 +3,23 @@ part of ripplelib.remote;
 /**
  *
  *
- * Events that are emitted by [Remote]:
- *  - disconnect
- *  - message
- *  - send_message
- *  -
  */
 abstract class Remote extends Object with Events {
+
+  static final Logger logger = () {
+    hierarchicalLoggingEnabled = true;
+    return new Logger("ripplelib_remote_Remote")
+      ..level = Level.ALL;
+  }();
+  // (Remote).toString() gives just "Remote" instead of the full name
+  static void _log(String message, [Level level = Level.INFO]) => logger.log(level, message);
 
   static final EventType OnConnected            = new EventType<Remote>();
   static final EventType OnDisconnected         = new EventType<Remote>();
   static final EventType OnMessage              = new EventType<JsonObject>();
   static final EventType OnSendMessage          = new EventType<JsonObject>();
   static final EventType OnLedgerClosed         = new EventType(); //TODO
-  static final EventType OnPathFind             = new EventType(); //TODO
+  static final EventType OnPathFindStatus     = new EventType<JsonObject>();
   static final EventType OnSubscribed           = new EventType<JsonObject>();
   static final EventType OnUnsubscribed         = new EventType<JsonObject>();
   static final EventType OnTransaction          = new EventType<TransactionResult>();
@@ -37,6 +40,7 @@ abstract class Remote extends Object with Events {
    */
   SubscriptionManager _initSubscriptionManager() => new SubscriptionManager()
     ..on(SubscriptionManager.OnSubscribed, (JsonObject subObject) {
+      _log("Subscribing: $subObject", Level.FINE);
       Request req = newRequest(Command.SUBSCRIBE)..updateJson(subObject);
       req.request().then((Response response) {
         if(response.succeeded)
@@ -44,6 +48,7 @@ abstract class Remote extends Object with Events {
       });
     })
     ..on(SubscriptionManager.OnUnsubscribed, (JsonObject subObject) {
+      _log("Unsubscribing: $subObject", Level.FINE);
       Request req = newRequest(Command.UNSUBSCRIBE)..updateJson(subObject);
       req.request().then((Response response) {
         if(response.succeeded)
@@ -72,7 +77,8 @@ abstract class Remote extends Object with Events {
 
   /* message handling */
 
-  void handleMessage(JsonObject message) {
+  void handleMessage(String messageString) {
+    JsonObject message = const RippleJsonCodec().decode(messageString);
     emit(OnMessage, message);
 
     switch(MessageType.fromJsonKey(message.type)) {
@@ -80,9 +86,9 @@ abstract class Remote extends Object with Events {
         _updateServerInfo(message);
         break;
       case MessageType.LEDGER_CLOSED:
+        emit(OnLedgerClosed, null);
         _updateServerInfo(message);
         //TODO
-        emit(OnLedgerClosed, null);
         break;
       case MessageType.RESPONSE:
         _handleResponse(message);
@@ -91,7 +97,13 @@ abstract class Remote extends Object with Events {
         _handleTransaction(message);
         break;
       case MessageType.PATH_FIND:
-        emit(OnPathFind, message);
+        emit(OnPathFindStatus, message);
+        break;
+      case MessageType.ERROR:
+        _handleError(message);
+        break;
+      default:
+        _log("Unhandled message: $message", Level.WARNING);
         break;
     }
   }
@@ -99,7 +111,7 @@ abstract class Remote extends Object with Events {
   void _handleResponse(JsonObject message) {
     Request request = _pendingRequests.remove(message.id);
     if(request == null) {
-      //TODO handle unrecognised request
+      _log("Received response to unrecognized request: $message", Level.WARNING);
       return;
     }
     request.handleResponse(message);
@@ -120,6 +132,10 @@ abstract class Remote extends Object with Events {
     // emit transaction when not previously emitted
     if(lastValidated == null)
       emit(OnTransaction, tx);
+  }
+
+  void _handleError(JsonObject message) {
+    _log("Received error: $message", Level.WARNING);
   }
 
   void _updateServerInfo(JsonObject message) {
@@ -268,23 +284,39 @@ abstract class Remote extends Object with Events {
     return req;
   }
 
-  Future<Response> requestPathFind(Account sourceAccount, Account destinationAccount, Amount amount, List<Issue> currencies,
-                              {PathSet paths, List<Account> bridges}) =>
-      makePathFindRequest(sourceAccount, destinationAccount, amount, currencies, paths: paths, bridges: bridges).request();
+  /**
+   * Find payment paths.
+   *
+   * Returns a stream of [Alternative] objects that you can listen to.
+   * Also, you can use the [handleError] method to intercept errors on the stream.
+   *
+   * Don't forget to close the stream when you are done.
+   */
+  PathFindStream findPaths(Account sourceAccount, Account destinationAccount, Amount amount,
+                           {PathSet paths, List<Account> bridges}) =>
+      new PathFindStream._withRequest(
+          makePathFindRequest(sourceAccount, destinationAccount, amount, paths: paths, bridges: bridges));
 
-  Request makePathFindRequest(Account sourceAccount, Account destinationAccount, Amount amount, List<Issue> currencies,
+  /**
+   * It is advised to use [findPaths] instead.
+   */
+  Future<Response> requestPathFind(Account sourceAccount, Account destinationAccount, Amount amount,
+                              {PathSet paths, List<Account> bridges}) =>
+      makePathFindRequest(sourceAccount, destinationAccount, amount, paths: paths, bridges: bridges).request();
+
+  Request makePathFindRequest(Account sourceAccount, Account destinationAccount, Amount amount,
                               {PathSet paths, List<Account> bridges}) {
     Request req = newRequest(Command.PATH_FIND);
+    req.subcommand = "create";
     req.source_account = sourceAccount;
     req.destination_account = destinationAccount;
     req.destination_amount = amount;
-    req.source_currencies = currencies;
     if(paths != null)
       req.paths = paths;
     if(bridges != null)
       req.bridges = bridges;
     return req;
-  } //TODO path_find has a close and status command to control the pending request
+  }
 
   Future<Response> requestPing() => makePingRequest().request();
 
@@ -300,8 +332,8 @@ abstract class Remote extends Object with Events {
     return req;
   }
 
-  Future<Response> requestRipplePathFind(Account sourceAccount, Account destinationAccount, Amount amount, List<Issue> currencies,
-                                    {LedgerSelector ledger}) =>
+  Future<Response> requestRipplePathFind(Account sourceAccount, Account destinationAccount, Amount amount,
+                                         {List<Issue> currencies, LedgerSelector ledger}) =>
       makeRipplePathFindRequest(sourceAccount, destinationAccount, amount, currencies, ledger: ledger).request();
 
   Request makeRipplePathFindRequest(Account sourceAccount, Account destinationAccount, Amount amount, List<Issue> currencies,
@@ -310,7 +342,8 @@ abstract class Remote extends Object with Events {
     req.source_account = sourceAccount;
     req.destination_account = destinationAccount;
     req.destination_amount = amount;
-    req.source_currencies = currencies;
+    if(currencies != null)
+      req.source_currencies = currencies;
     if(ledger != null) {
       if(ledger is _HashLedgerSelector)
         req.ledger_hash = ledger;
@@ -344,19 +377,8 @@ abstract class Remote extends Object with Events {
       req.fail_hard = failHard;
   }
 
-  Future<Response> requestTransactionEntry(Hash256 txHash, {Hash256 ledgerHash}) =>
-      makeTransactionEntryRequest(txHash, ledgerHash: ledgerHash).request();
-
-  Request makeTransactionEntryRequest(Hash256 txHash, {Hash256 ledgerHash}) {
-    Request req = newRequest(Command.TRANSACTION_ENTRY);
-    req.transaction_hash = txHash;
-    if(ledgerHash != null)
-      req.ledger_hash = ledgerHash;
-    return req;
-  }
-
   Future<Response> requestTransaction(Hash256 txHash, {bool binary}) =>
-      makeTransactionRequest(txHash, binary: binary).request();
+  makeTransactionRequest(txHash, binary: binary).request();
 
   Request makeTransactionRequest(Hash256 txHash, {bool binary}) {
     Request req = newRequest(Command.TX);
@@ -366,6 +388,25 @@ abstract class Remote extends Object with Events {
     return req;
   }
 
+  Future<Response> requestTransactionEntry(Hash256 txHash, LedgerSelector ledger) =>
+      makeTransactionEntryRequest(txHash, ledger).request();
+
+  Request makeTransactionEntryRequest(Hash256 txHash, LedgerSelector ledger) {
+    Request req = newRequest(Command.TRANSACTION_ENTRY);
+    req.transaction_hash = txHash;
+    if(ledger != null) {
+      if(ledger is _HashLedgerSelector)
+        req.ledger_hash = ledger;
+      else
+        req.ledger_index = ledger;
+    }
+    return req;
+  }
+
+  /**
+   * Does not seem to work anymore.
+   */
+  @Deprecated("The rippled test instance does not recognize this request.")
   Future<Response> requestTransactionHistory(LedgerSelector startIndex) =>
       makeTransactionHistoryRequest(startIndex).request();
 
@@ -397,12 +438,12 @@ class LedgerSelector {
   factory LedgerSelector.hash(Hash256 ledgerHash) => new _HashLedgerSelector(ledgerHash);
   factory LedgerSelector.sequence(int sequenceNumber) => new _SequenceLedgerSelector(sequenceNumber);
 
-  final String _value;
-  const LedgerSelector._internal(String this._value);
+  final dynamic _jsonValue;
+  const LedgerSelector._internal(dynamic this._jsonValue);
 
   @override
-  String toString() => _value;
-  toJson() => _value;
+  String toString() => _jsonValue.toString();
+  toJson() => _jsonValue;
 
   //not used (yet?)
   void applyTo(Request req) {
@@ -420,7 +461,7 @@ class _HashLedgerSelector extends LedgerSelector {
   _HashLedgerSelector(Hash256 ledgerHash) : super._internal(ledgerHash.toHex());
 }
 class _SequenceLedgerSelector extends LedgerSelector {
-  _SequenceLedgerSelector(int sequenceNumber) : super._internal(sequenceNumber.toString());
+  _SequenceLedgerSelector(int sequenceNumber) : super._internal(sequenceNumber);
 }
 
 

@@ -1,4 +1,4 @@
-part of ripplelib.core;
+part of ripplelib.json;
 
 /**
  * This class only overrides [JsonObject]'s [toString()] method with one that

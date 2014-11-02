@@ -10,8 +10,8 @@ class PathSet implements List<Path>, RippleSerialization {
   PathSet(Iterable<Path> paths) : _paths = paths is List ? paths : new List.from(paths);
 
   PathSet.fromJson(dynamic json) {
-    List pathList = json as List;
-    _paths = pathList.map((path) => new Path.fromJson(path));
+    Iterable pathList = json as Iterable;
+    _paths = new List.from(pathList.map((path) => new Path.fromJson(path)));
   }
 
   @override
@@ -42,8 +42,8 @@ class Path implements List<Hop> {
   List<Hop> _hops;
 
   Path.fromJson(dynamic json) {
-    List hopList = json as List;
-    _hops = hopList.map((hop) => _hops.add(new Hop.fromJson(hop)));
+    Iterable hopList = json as Iterable;
+    _hops = new List.from(hopList.map((hop) => new Hop.fromJson(hop)));
   }
 
   toJson() => _hops;
