@@ -43,7 +43,7 @@ abstract class Remote extends Object with Events {
       _log("Subscribing: $subObject", Level.FINE);
       Request req = newRequest(Command.SUBSCRIBE)..updateJson(subObject);
       req.request().then((Response response) {
-        if(response.succeeded)
+        if(response.successful)
           emit(OnSubscribed, subObject);
       });
     })
@@ -51,7 +51,7 @@ abstract class Remote extends Object with Events {
       _log("Unsubscribing: $subObject", Level.FINE);
       Request req = newRequest(Command.UNSUBSCRIBE)..updateJson(subObject);
       req.request().then((Response response) {
-        if(response.succeeded)
+        if(response.successful)
           emit(OnUnsubscribed, subObject);
       });
     });

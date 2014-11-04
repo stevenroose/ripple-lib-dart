@@ -7,6 +7,7 @@ import "package:logging/logging.dart";
 
 import "json.dart";
 import "remote.dart";
+export "remote.dart";
 
 class ServerRemote extends Remote {
 

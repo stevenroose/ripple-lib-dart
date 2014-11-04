@@ -54,7 +54,7 @@ class RippleJsonDecoder extends JsonDecoder {
       "Destination":            (j) => new Account.fromJson(j),
       "EmailHash":              (j) => new Hash128(j),
       "engine_result":          (j) => EngineResult.fromName(j),
-      "Expiration":             (j) => new DateTime.fromMillisecondsSinceEpoch(j),
+      "Expiration":             (j) => RippleUtils.dateTimeFromSecondsSinceRippleEpoch(j),
       "Fee":                    (j) => new Amount.fromJson(j),
       "hash":                   (j) => j.length == 64 ? new Hash256(j) : j,
       "issuer":                 (j) => new Account.fromJson(j),

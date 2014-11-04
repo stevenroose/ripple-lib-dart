@@ -68,6 +68,13 @@ abstract class RippleSerialization implements RippleSerializable {
   }
 
   void _writeNativeType(ByteSink sink, FieldType type, dynamic value) {
+    // first convert from native classes to FieldType-compliant values
+    switch(value.runtimeType) {
+      case DateTime:
+        value = RippleUtils.getSecondsSinceRippleEpoch(value);
+        break;
+    }
+    // then serialize FieldType-compliant values
     switch(type) {
       case FieldType.UINT8:
         sink.add(RippleUtils.uintToBytesLE(value, 1));
@@ -84,7 +91,7 @@ abstract class RippleSerialization implements RippleSerializable {
       case FieldType.HASH128:
       case FieldType.HASH256:
       case FieldType.HASH160:
-        sink.add(value.asBytes());
+        sink.add(value.bytes);
         break;
       case FieldType.VARLEN:
         if(value is String) value = const Utf8Encoder().convert(value);
