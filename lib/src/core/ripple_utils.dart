@@ -74,6 +74,10 @@ abstract class RippleUtils {
     return dateTime.difference(RIPPLE_EPOCH).inSeconds;
   }
 
+  static const int _XRP_DROPS = 1000000;
+  static double dropsToXRP(int drops) => drops / _XRP_DROPS;
+  static int xrpToDrops(double xrp) => (xrp * _XRP_DROPS).truncate();
+
 }
 
 @proxy
