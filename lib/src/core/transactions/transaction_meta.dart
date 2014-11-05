@@ -81,6 +81,7 @@ class DeletedNode extends AffectedNode {
   });
 
   Map get finalFields => _get(Field.FinalFields);
+  Map get previousFields => _get(Field.PreviousFields);
 
   DeletedNode.fromJson(dynamic json) : super._fromJson(json);
 }
@@ -90,12 +91,12 @@ class ModifiedNode extends AffectedNode {
   @override
   Map<Field, FieldRequirement> get _rippleFormat => _rippleFormatMap;
   static final Map<Field, FieldRequirement> _rippleFormatMap = new Map.from(AffectedNode._rippleFormatMap)..addAll({
-      Field.NewFields:    FieldRequirement.OPTIONAL,
-      Field.FinalFields:  FieldRequirement.OPTIONAL
+      Field.PreviousFields: FieldRequirement.OPTIONAL,
+      Field.FinalFields:    FieldRequirement.OPTIONAL
   });
 
   Map get finalFields => _get(Field.FinalFields);
-  Map get newFields => _get(Field.NewFields);
+  Map get previousFields => _get(Field.PreviousFields);
 
   ModifiedNode.fromJson(dynamic json) : super._fromJson(json);
 }

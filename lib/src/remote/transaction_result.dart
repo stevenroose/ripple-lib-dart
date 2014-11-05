@@ -6,7 +6,7 @@ class TransactionResult extends RippleJsonObject implements Comparable<Transacti
   Hash256 hash;
 
   Transaction get transaction => this["transaction"];
-  TransactionMeta get meta => this.Meta;
+  TransactionMeta get meta => this["meta"];
   bool get validated => this["validated"];
 
   EngineResult get transactionResult => meta.transactionResult;
@@ -16,9 +16,8 @@ class TransactionResult extends RippleJsonObject implements Comparable<Transacti
   TransactionResult(Transaction transaction, TransactionMeta meta, [int this.ledgerIndex = -1, Hash256 this.hash]) {
     if(hash == null)
       hash = transaction.hash;
-    this.Transaction = transaction;
     this["transaction"] = transaction;
-    this.Meta = meta;
+    this["meta"] = meta;
   }
 
   TransactionResult.fromJson(dynamic json) : super.fromMap(json, false) {

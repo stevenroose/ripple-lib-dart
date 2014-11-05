@@ -8,8 +8,7 @@ abstract class Remote extends Object with Events {
 
   static final Logger logger = () {
     hierarchicalLoggingEnabled = true;
-    return new Logger("ripplelib_remote_Remote")
-      ..level = Level.ALL;
+    return new Logger("ripplelib-remote");
   }();
   // (Remote).toString() gives just "Remote" instead of the full name
   static void _log(String message, [Level level = Level.INFO]) => logger.log(level, message);
@@ -19,7 +18,7 @@ abstract class Remote extends Object with Events {
   static final EventType OnMessage              = new EventType<JsonObject>();
   static final EventType OnSendMessage          = new EventType<JsonObject>();
   static final EventType OnLedgerClosed         = new EventType(); //TODO
-  static final EventType OnPathFindStatus     = new EventType<JsonObject>();
+  static final EventType OnPathFindStatus       = new EventType<JsonObject>();
   static final EventType OnSubscribed           = new EventType<JsonObject>();
   static final EventType OnUnsubscribed         = new EventType<JsonObject>();
   static final EventType OnTransaction          = new EventType<TransactionResult>();
