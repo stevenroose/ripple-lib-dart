@@ -25,32 +25,36 @@ class Amount extends RippleSerialization implements Comparable<Amount> {
 
   static final Decimal _ZERO_DECIMAL = new Decimal.fromInt(0);
 
-  Amount._(Decimal this.value, Currency this.currency, Account this.issuer) {
-    if (isNative) {
-      if (value.abs() > MAX_NATIVE_VALUE)
-        throw new StateError("Amount too big: $value");
-      if(value.scale > MAXIMUM_NATIVE_SCALE)
-        throw new StateError("Amount has scale higher that allowed: $value");
-    } else {
-      if(value.precision > MAXIMUM_IOU_PRECISION)
-        throw new StateError("Too large precision for IOU: $value");
+  Amount._(Decimal this.value, Currency this.currency, Account this.issuer, [bool unchecked = true]) {
+    if(!unchecked) {
+      if(isNative) {
+        if(value.abs() > MAX_NATIVE_VALUE)
+          throw new StateError("Amount too big: $value");
+        if(value.scale > MAXIMUM_NATIVE_SCALE)
+          throw new StateError("Amount has scale higher that allowed: $value");
+      } else {
+        if (value.precision > MAXIMUM_IOU_PRECISION)
+          throw new StateError("Too large precision for IOU: $value");
+      }
     }
   }
 
-  factory Amount(dynamic amount, [Currency currency, Account issuer]) {
+  factory Amount(dynamic value, [Currency currency, Account issuer, bool unchecked = true]) {
     // default values
     if (currency == null)
       currency = Currency.XRP;
     if (issuer == null)
       issuer = Account.XRP_ISSUER;
     // different accepted amount types
-    amount = _convertDecimalAmount(amount);
-    return new Amount._(amount, currency, issuer);
+    value = _convertDecimalAmount(value);
+    return new Amount._(value, currency, issuer, unchecked);
   }
 
-  factory Amount.XRP(dynamic amount) => new Amount._(_convertDecimalAmount(amount), Currency.XRP, Account.XRP_ISSUER);
+  factory Amount.XRP(dynamic value, [bool unchecked = true]) =>
+      new Amount._(_convertDecimalAmount(value), Currency.XRP, Account.XRP_ISSUER, unchecked);
 
-  factory Amount.drops(dynamic drops) => new Amount.XRP(_convertDecimalAmount(drops) / XRP_IN_DROPS);
+  factory Amount.drops(dynamic drops, [bool unchecked = true]) =>
+      new Amount.XRP(_convertDecimalAmount(drops) / XRP_IN_DROPS, unchecked);
 
   static Decimal _convertDecimalAmount(dynamic amount) {
     if (amount is String)
@@ -61,6 +65,8 @@ class Amount extends RippleSerialization implements Comparable<Amount> {
       return new Decimal.fromInt(amount);
     if (amount is BigInteger)
       return Decimal.parse(amount.toString());
+    if(amount is double)
+      return Decimal.parse("$amount");
     throw new ArgumentError("Invalid type for amount: $amount");
   }
 
