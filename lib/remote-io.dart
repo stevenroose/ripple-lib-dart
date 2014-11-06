@@ -11,7 +11,7 @@ export "remote.dart";
 
 class ServerRemote extends Remote {
 
-  static void _log(String message, [Level level = Level.INFO]) => Remote.logger.log(level, message);
+  static void _log(String message, [Level level = Level.INFO]) => Remote.log.log(level, message);
 
   final String url;
   WebSocket _ws;

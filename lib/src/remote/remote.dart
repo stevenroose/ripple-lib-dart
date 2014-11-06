@@ -6,12 +6,12 @@ part of ripplelib.remote;
  */
 abstract class Remote extends Object with Events {
 
-  static final Logger logger = () {
+  static final Logger log = () {
     hierarchicalLoggingEnabled = true;
     return new Logger("ripplelib.remote");
   }();
   // (Remote).toString() gives just "Remote" instead of the full name
-  static void _log(String message, [Level level = Level.INFO]) => logger.log(level, message);
+  static void _log(String message, [Level level = Level.INFO]) => log.log(level, message);
 
   static final EventType OnConnected            = new EventType<Remote>();
   static final EventType OnDisconnected         = new EventType<Remote>();
