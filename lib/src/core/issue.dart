@@ -11,22 +11,25 @@ class Issue {
 
   factory Issue.fromString(String issue) {
     List<String> split = issue.split("/");
-    return new Issue(new Currency.iso(split[0]), new Account(split[1]));
+    return new Issue(new Currency.iso(split[0]),
+        split.length < 2 ? null : new Account(split[1]));
   }
 
   bool get isNative => this == XRP;
 
+  bool get hasIssuer => issuer != null;
+
   Amount amount(Decimal amount) => new Amount(amount, currency, issuer);
 
   @override
-  String toString() => isNative ? currency.toString() : "$currency/$issuer";
+  String toString() => isNative || issuer == null ? currency.toString() : "$currency/$issuer";
 
   @override
   bool operator ==(Object other) => other is Issue &&
       other.issuer == issuer && other.currency == currency;
 
   @override
-  int get hashCode => currency.hashCode ^ issuer.hashCode;
+  int get hashCode => currency.hashCode ^ (issuer == null ? 0 : issuer.hashCode);
 
   /* JSON */
 
