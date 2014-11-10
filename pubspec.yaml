@@ -1,4 +1,4 @@
-name: ripple-lib
+name: ripplelib
 dependencies:
   bignum: any
   browser: any

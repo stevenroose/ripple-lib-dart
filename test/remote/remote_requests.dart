@@ -8,9 +8,8 @@ library ripplelib.test.remote.requests;
 
 import "package:unittest/unittest.dart";
 
-import "package:ripple-lib/json.dart";
-import "package:ripple-lib/remote.dart";
-import "package:ripple-lib/remote-io.dart";
+import "package:ripplelib/json.dart";
+import "package:ripplelib/remote-io.dart";
 import "dart:convert";
 import "package:cryptoutils/cryptoutils.dart";
 
