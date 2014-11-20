@@ -5,6 +5,8 @@ class SubscriptionManager extends Object with Events {
   static final EventType OnSubscribed   = new EventType<JsonObject>();
   static final EventType OnUnsubscribed = new EventType<JsonObject>();
 
+  Stream<JsonObject> get onSubscribed   => on(OnSubscribed);
+  Stream<JsonObject> get onUnsubscribed => on(OnUnsubscribed);
 
   Set<SubscriptionStream> _streams = new Set<SubscriptionStream>();
   Set<Account> _accounts = new Set<Account>();

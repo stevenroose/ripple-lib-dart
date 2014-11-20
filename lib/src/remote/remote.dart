@@ -24,6 +24,17 @@ abstract class Remote extends Object with Events {
   static final EventType OnTransaction          = new EventType<TransactionResult>();
   static final EventType OnValidatedTransaction = new EventType<TransactionResult>();
 
+  Stream<Remote>            get onConnected            => on(OnConnected);
+  Stream<Remote>            get onDisconnected         => on(OnDisconnected);
+  Stream<JsonObject>        get onMessage              => on(OnMessage);
+  Stream<JsonObject>        get onSendMessage          => on(OnSendMessage);
+  Stream<Object>            get onLedgerClosed         => on(OnLedgerClosed); //TODO
+  Stream<JsonObject>        get onPathFindStatus       => on(OnPathFindStatus);
+  Stream<JsonObject>        get onSubscribed           => on(OnSubscribed);
+  Stream<JsonObject>        get onUnsubscribed         => on(OnUnsubscribed);
+  Stream<TransactionResult> get onTransaction          => on(OnTransaction);
+  Stream<TransactionResult> get onValidatedTransaction => on(OnValidatedTransaction);
+
 
   int _requestID = 0;
   LRUMap<int, Request> _pendingRequests = new LRUMap<int, Request>(capacity: 30);
