@@ -11,6 +11,11 @@ class Issue {
 
   factory Issue.fromString(String issue) {
     List<String> split = issue.split("/");
+    if(split[0] == "XRP") {
+      if(split.length > 1 && split[1] != Account.XRP_ISSUER.address)
+        throw new ArgumentError("XRP cannot have an issuer!");
+      return XRP;
+    }
     return new Issue(new Currency.iso(split[0]),
         split.length < 2 ? null : new Account(split[1]));
   }
