@@ -2,22 +2,22 @@ part of ripplelib.core;
 
 class Issue {
 
-  static final Issue XRP = new Issue(Currency.XRP, Account.XRP_ISSUER);
+  static final Issue XRP = new Issue(Currency.XRP, AccountID.XRP_ISSUER);
 
   final Currency currency;
-  final Account issuer;
+  final AccountID issuer;
 
-  Issue(Currency this.currency, Account this.issuer);
+  Issue(Currency this.currency, AccountID this.issuer);
 
   factory Issue.fromString(String issue) {
     List<String> split = issue.split("/");
     if(split[0] == "XRP") {
-      if(split.length > 1 && split[1] != Account.XRP_ISSUER.address)
+      if(split.length > 1 && split[1] != AccountID.XRP_ISSUER.address)
         throw new ArgumentError("XRP cannot have an issuer!");
       return XRP;
     }
     return new Issue(new Currency.iso(split[0]),
-        split.length < 2 ? null : new Account(split[1]));
+        split.length < 2 ? null : new AccountID(split[1]));
   }
 
   bool get isNative => this == XRP;
@@ -44,6 +44,6 @@ class Issue {
       result["issuer"] = issuer;
     return result;
   }
-  factory Issue.fromJson(var json) => new Issue(json["currency"], json.length > 1 ? json["issuer"] : Account.XRP_ISSUER);
+  factory Issue.fromJson(var json) => new Issue(json["currency"], json.length > 1 ? json["issuer"] : AccountID.XRP_ISSUER);
 
 }

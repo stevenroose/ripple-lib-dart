@@ -222,10 +222,10 @@ abstract class Remote extends Object with Events {
     return req;
   }
 
-  Future<Response> requestBookOffers(Issue takerPays, Issue takerGets, {Account taker, LedgerSelector ledger, int limit, bool proof}) =>
+  Future<Response> requestBookOffers(Issue takerPays, Issue takerGets, {AccountID taker, LedgerSelector ledger, int limit, bool proof}) =>
       makeBookOffersRequest(takerPays, takerGets, taker: taker, ledger: ledger, limit: limit, proof: proof).request();
 
-  Request makeBookOffersRequest(Issue takerPays, Issue takerGets, {Account taker, LedgerSelector ledger, int limit, bool proof}) {
+  Request makeBookOffersRequest(Issue takerPays, Issue takerGets, {AccountID taker, LedgerSelector ledger, int limit, bool proof}) {
     Request req = newRequest(Command.BOOK_OFFERS);
     req.taker_pays = takerPays;
     req.taker_gets = takerGets;
@@ -302,20 +302,20 @@ abstract class Remote extends Object with Events {
    *
    * Don't forget to close the stream when you are done.
    */
-  PathFindStream findPaths(Account sourceAccount, Account destinationAccount, Amount amount,
-                           {PathSet paths, List<Account> bridges}) =>
+  PathFindStream findPaths(AccountID sourceAccount, AccountID destinationAccount, Amount amount,
+                           {PathSet paths, List<AccountID> bridges}) =>
       new PathFindStream._withRequest(
           makePathFindRequest(sourceAccount, destinationAccount, amount, paths: paths, bridges: bridges));
 
   /**
    * It is advised to use [findPaths] instead.
    */
-  Future<Response> requestPathFind(Account sourceAccount, Account destinationAccount, Amount amount,
-                              {PathSet paths, List<Account> bridges}) =>
+  Future<Response> requestPathFind(AccountID sourceAccount, AccountID destinationAccount, Amount amount,
+                              {PathSet paths, List<AccountID> bridges}) =>
       makePathFindRequest(sourceAccount, destinationAccount, amount, paths: paths, bridges: bridges).request();
 
-  Request makePathFindRequest(Account sourceAccount, Account destinationAccount, Amount amount,
-                              {PathSet paths, List<Account> bridges}) {
+  Request makePathFindRequest(AccountID sourceAccount, AccountID destinationAccount, Amount amount,
+                              {PathSet paths, List<AccountID> bridges}) {
     Request req = newRequest(Command.PATH_FIND);
     req.subcommand = "create";
     req.source_account = sourceAccount;
@@ -342,11 +342,11 @@ abstract class Remote extends Object with Events {
     return req;
   }
 
-  Future<Response> requestRipplePathFind(Account sourceAccount, Account destinationAccount, Amount amount,
+  Future<Response> requestRipplePathFind(AccountID sourceAccount, AccountID destinationAccount, Amount amount,
                                          {List<Issue> currencies, LedgerSelector ledger}) =>
       makeRipplePathFindRequest(sourceAccount, destinationAccount, amount, currencies, ledger: ledger).request();
 
-  Request makeRipplePathFindRequest(Account sourceAccount, Account destinationAccount, Amount amount, List<Issue> currencies,
+  Request makeRipplePathFindRequest(AccountID sourceAccount, AccountID destinationAccount, Amount amount, List<Issue> currencies,
                                     {LedgerSelector ledger}) {
     Request req = newRequest(Command.RIPPLE_PATH_FIND);
     req.source_account = sourceAccount;

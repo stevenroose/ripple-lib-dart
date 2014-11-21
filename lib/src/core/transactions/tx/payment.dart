@@ -17,8 +17,8 @@ class Payment extends Transaction {
   TransactionType get type => TransactionType.PAYMENT;
   set type(TransactionType type) => throw new StateError("Cannot change transaction type");
 
-  Account get destination => _get(Field.Destination);
-  set destination(Account destination) => _put(Field.Destination, destination);
+  AccountID get destination => _get(Field.Destination);
+  set destination(AccountID destination) => _put(Field.Destination, destination);
 
   Amount get amount => _get(Field.Amount);
   set amount(Amount amount) => _put(Field.Amount, amount);

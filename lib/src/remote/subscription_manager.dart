@@ -9,8 +9,8 @@ class SubscriptionManager extends Object with Events {
   Stream<JsonObject> get onUnsubscribed => on(OnUnsubscribed);
 
   Set<SubscriptionStream> _streams = new Set<SubscriptionStream>();
-  Set<Account> _accounts = new Set<Account>();
-  Set<Account> _accountsProposed = new Set<Account>();
+  Set<AccountID> _accounts = new Set<AccountID>();
+  Set<AccountID> _accountsProposed = new Set<AccountID>();
 
   void addStream(SubscriptionStream stream) {
     if(_streams.add(stream))
@@ -22,7 +22,7 @@ class SubscriptionManager extends Object with Events {
       emit(OnUnsubscribed, _generateSubscriptionObject([stream], null, null));
   }
 
-  void addAccount(Account account, [bool proposed = false]) {
+  void addAccount(AccountID account, [bool proposed = false]) {
     if(proposed) {
       if (_accountsProposed.add(account))
         emit(OnSubscribed, _generateSubscriptionObject(null, null, [account]));
@@ -32,7 +32,7 @@ class SubscriptionManager extends Object with Events {
     }
   }
 
-  void removeAccount(Account account, [bool proposed = false]) {
+  void removeAccount(AccountID account, [bool proposed = false]) {
     if(proposed) {
       if (_accountsProposed.remove(account))
         emit(OnUnsubscribed, _generateSubscriptionObject(null, null, [account]));
@@ -46,8 +46,8 @@ class SubscriptionManager extends Object with Events {
 
   // helper method
 
-  static JsonObject _generateSubscriptionObject(Iterable<SubscriptionStream> streams, Iterable<Account> accounts,
-      Iterable<Account> accountsProposed) {
+  static JsonObject _generateSubscriptionObject(Iterable<SubscriptionStream> streams, Iterable<AccountID> accounts,
+      Iterable<AccountID> accountsProposed) {
     JsonObject subs = new JsonObject();
     if(streams != null && !streams.isEmpty)
       subs.streams = streams.toList();

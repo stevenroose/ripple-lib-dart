@@ -61,12 +61,12 @@ class Hop {
   static const int TYPE_ACCOUNT_CURRENCY        = TYPE_CURRENCY | TYPE_ACCOUNT;
   static const int VALID_TYPE_MASK              =  ~(TYPE_ACCOUNT | TYPE_CURRENCY | TYPE_ISSUER);
 
-  Account account;
-  Account issuer;
+  AccountID account;
+  AccountID issuer;
   Currency currency;
   int _type;
 
-  Hop(Account this.account, Account this.issuer, Currency this.currency);
+  Hop(AccountID this.account, AccountID this.issuer, Currency this.currency);
 
   bool get hasAccount  => account != null;
   bool get hasIssuer   => issuer != null;

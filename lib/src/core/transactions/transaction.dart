@@ -23,8 +23,8 @@ abstract class Transaction extends RippleSerializedObject {
   TransactionType get type => _get(Field.TransactionType);
   set type(TransactionType type) => _put(Field.TransactionType, type);
 
-  Account get account => _get(Field.Account);
-  set account(Account account) => _put(Field.Account, account);
+  AccountID get account => _get(Field.Account);
+  set account(AccountID account) => _put(Field.Account, account);
 
   int get sequence => _get(Field.Sequence);
   set sequence(int sequence) => _put(Field.Sequence, sequence);

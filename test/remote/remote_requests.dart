@@ -14,7 +14,7 @@ import "dart:convert";
 import "package:cryptoutils/cryptoutils.dart";
 
 
-Account me = new Account("rK1w3Zcd6eiEJ2N29gipexpXQuR7gPDLQg");
+AccountID me = new AccountID("rK1w3Zcd6eiEJ2N29gipexpXQuR7gPDLQg");
 Issue myBTC = new Issue.fromString("BTC/rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B");
 Hash256 testTxHash = new Hash256("2F128C9A157D9F0309DEC6D89286DF9297D9A5D62A7393EF53CA911488D4AB32");
 

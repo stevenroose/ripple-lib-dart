@@ -1,34 +1,34 @@
 part of ripplelib.core;
 
 
-class Account extends Hash160 implements RippleSerializable {
+class AccountID extends Hash160 implements RippleSerializable {
 
-  static final Account XRP_ISSUER = new Account(BigInteger.ZERO);
+  static final AccountID XRP_ISSUER = new AccountID(BigInteger.ZERO);
 
-  factory Account(dynamic account) {
+  factory AccountID(dynamic account) {
     // bytes
     if(account is List<int>)
-      return new Account.fromBytes(account);
+      return new AccountID.fromBytes(account);
     if(account is Hash160)
-      return new Account.fromBytes(account.bytes);
+      return new AccountID.fromBytes(account.bytes);
     // string
     if(account is String) {
       // hex string of payload
       if(account.length == 20 * 2)
-        return new Account.fromBytes(CryptoUtils.hexToBytes(account));
+        return new AccountID.fromBytes(CryptoUtils.hexToBytes(account));
       // base58check encoded "address"
       if(account.startsWith("r") && account.length >= 26)
-        return new Account.fromBytes(decodeAddress(account)).._address = account;
-      throw new FormatException("String does not represent an Account: $account");
+        return new AccountID.fromBytes(decodeAddress(account)).._address = account;
+      throw new FormatException("String does not represent an AccountID: $account");
     }
     // biginteger
     if(account is BigInteger) {
-      return new Account(new Hash160(account));
+      return new AccountID(new Hash160(account));
     }
     throw new ArgumentError("Invalid account argument: $account");
   }
 
-  Account.fromBytes(List<int> bytes) : super(bytes);
+  AccountID.fromBytes(List<int> bytes) : super(bytes);
 
   String _address;
 
@@ -45,7 +45,7 @@ class Account extends Hash160 implements RippleSerializable {
 
   @override
   toJson() => toString();
-  factory Account.fromJson(dynamic json) => new Account(json);
+  factory AccountID.fromJson(dynamic json) => new AccountID(json);
 
   /* RIPPLE SERIALIZATION */
 

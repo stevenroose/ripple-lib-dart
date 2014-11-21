@@ -13,7 +13,7 @@ class FieldType extends Enum {
   static const FieldType HASH256 = const FieldType._(5, Hash256);
   static const FieldType AMOUNT = const FieldType._(6, Amount);
   static const FieldType VARLEN = const FieldType._(7, Uint8List);
-  static const FieldType ACCOUNT = const FieldType._(8, Account);
+  static const FieldType ACCOUNT = const FieldType._(8, AccountID);
 
   static const FieldType OBJECT = const FieldType._(14, RippleSerialization);
   static const FieldType ARRAY = const FieldType._(15, List);

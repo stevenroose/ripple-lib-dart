@@ -21,11 +21,11 @@ class Amount extends RippleSerialization implements Comparable<Amount> {
 
   final Decimal value;
   final Currency currency;
-  final Account issuer;
+  final AccountID issuer;
 
   static final Decimal _ZERO_DECIMAL = new Decimal.fromInt(0);
 
-  Amount._(Decimal this.value, Currency this.currency, Account this.issuer, [bool unchecked = true]) {
+  Amount._(Decimal this.value, Currency this.currency, AccountID this.issuer, [bool unchecked = true]) {
     if(!unchecked) {
       if(isNative) {
         if(value.abs() > MAX_NATIVE_VALUE)
@@ -39,19 +39,19 @@ class Amount extends RippleSerialization implements Comparable<Amount> {
     }
   }
 
-  factory Amount(dynamic value, [Currency currency, Account issuer, bool unchecked = true]) {
+  factory Amount(dynamic value, [Currency currency, AccountID issuer, bool unchecked = true]) {
     // default values
     if (currency == null)
       currency = Currency.XRP;
     if (issuer == null)
-      issuer = Account.XRP_ISSUER;
+      issuer = AccountID.XRP_ISSUER;
     // different accepted amount types
     value = _convertDecimalAmount(value);
     return new Amount._(value, currency, issuer, unchecked);
   }
 
   factory Amount.XRP(dynamic value, [bool unchecked = true]) =>
-      new Amount._(_convertDecimalAmount(value), Currency.XRP, Account.XRP_ISSUER, unchecked);
+      new Amount._(_convertDecimalAmount(value), Currency.XRP, AccountID.XRP_ISSUER, unchecked);
 
   factory Amount.drops(dynamic drops, [bool unchecked = true]) =>
       new Amount.XRP(_convertDecimalAmount(drops) / XRP_IN_DROPS, unchecked);
@@ -72,7 +72,7 @@ class Amount extends RippleSerialization implements Comparable<Amount> {
 
   Issue get issue => new Issue(currency, issuer);
 
-  bool get isNative => currency == Currency.XRP && issuer == Account.XRP_ISSUER;
+  bool get isNative => currency == Currency.XRP && issuer == AccountID.XRP_ISSUER;
 
   BigInteger get xrpDrops {
     if (!isNative)
