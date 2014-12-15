@@ -78,41 +78,45 @@ abstract class RippleUtils {
   static double dropsToXRP(int drops) => drops / _XRP_DROPS;
   static int xrpToDrops(double xrp) => (xrp * _XRP_DROPS).truncate();
 
-}
 
-@proxy
-class LRUMap<K,V> implements Map<K,V> {
 
-  final int capacity;
-  final Function onLRURemoved;
-  final LinkedHashMap _map;
-
-  LRUMap({int this.capacity: 100, Function this.onLRURemoved}) : _map = new LinkedHashMap<K,V>();
-
-  @override
-  V operator [](K key) {
-    if(!_map.containsKey(key))
-      return null;
-    V value = _map.remove(key);
-    _map[key] = value;
-    return value;
+  /**
+   * Calculates the SHA-256 hash of the input data.
+   */
+  static Uint8List singleDigest(Uint8List input) {
+    SHA256 digest = new SHA256();
+    digest.add(input);
+    return new Uint8List.fromList(digest.close());
   }
 
-  @override
-  operator []=(K key, V value) {
-    if(_map.length >= capacity && !_map.containsKey(key))
-      _removeLRU();
-    _map.remove(key);
-    return _map[key] = value;
+  /**
+   * Calculates the double-round SHA-256 hash of the input data.
+   */
+  static Uint8List doubleDigest(Uint8List input) {
+    SHA256 digest = new SHA256();
+    digest.add(input);
+    SHA256 digest2 = new SHA256()
+      ..add(digest.close());
+    return new Uint8List.fromList(digest2.close());
   }
 
-  void _removeLRU() {
-    K key = _map.keys.first;
-    V value = _map.remove(key);
-    if(onLRURemoved != null)
-      onLRURemoved(key, value);
+  /**
+   * Calculates the RIPEMD-160 hash of the given input.
+   */
+  static Uint8List ripemd160Digest(Uint8List input) {
+    RIPEMD160Digest digest = new RIPEMD160Digest();
+    digest.update(input, 0, input.length);
+    Uint8List result = new Uint8List(20);
+    digest.doFinal(result, 0);
+    return result;
   }
 
-  @override
-  noSuchMethod(Invocation inv) => reflect(_map).delegate(inv);
+  /**
+   * Calculates the RIPEMD-160 hash of the SHA-256 hash of the input.
+   * This is used to convert an ECDSA public key to a Bitcoin address.
+   */
+  static Uint8List sha256hash160(Uint8List input) {
+    return ripemd160Digest(singleDigest(input));
+  }
+
 }

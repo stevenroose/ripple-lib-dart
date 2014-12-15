@@ -40,7 +40,7 @@ class RippleJsonDecoder extends JsonDecoder {
       "account_hash":           (j) => new Hash256(j),
       "Account":                (j) => new AccountID.fromJson(j),
       "AffectedNodes":          (j) => _convertObjectList(j, _mapObjectByFirstKey),
-      "alternatives":           (j) => _convertObjectList(j, (j) => new Alternative.fromJson(j)),
+      "alternatives":           (j) => _convertObjectList(j, (j) => new PathFindStatus.fromJson(j)),
       "Amount":                 (j) => new Amount.fromJson(j),
       "amount":                 (j) => Decimal.parse(j),
       "balance":                (j) => Decimal.parse(j),

@@ -297,7 +297,7 @@ abstract class Remote extends Object with Events {
   /**
    * Find payment paths.
    *
-   * Returns a stream of [Alternative] objects that you can listen to.
+   * Returns a stream of [PathFindStatus] objects that you can listen to.
    * Also, you can use the [handleError] method to intercept errors on the stream.
    *
    * Don't forget to close the stream when you are done.
@@ -372,6 +372,7 @@ abstract class Remote extends Object with Events {
     req.secret = secret;
     if(offline != null)
       req.offline = offline;
+    return req;
   }
 
   Future<Response> requestSubmit(Transaction transaction, Secret secret, {bool offline, bool failHard}) =>
@@ -385,6 +386,7 @@ abstract class Remote extends Object with Events {
       req.offline = offline;
     if(failHard != null)
       req.fail_hard = failHard;
+    return req;
   }
 
   Future<Response> requestTransaction(Hash256 txHash, {bool binary}) =>

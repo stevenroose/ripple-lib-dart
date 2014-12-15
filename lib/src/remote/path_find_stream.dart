@@ -1,10 +1,26 @@
 part of ripplelib.remote;
 
+
+class PathFindStatus {
+  List<Path> paths;
+  Amount sourceAmount;
+
+  PathFindStatus.fromJson(dynamic json) {
+    paths = json["paths_computed"];
+    sourceAmount = json["source_amount"];
+  }
+
+  toJson() => {
+    "paths_computed": paths,
+    "source_amount": sourceAmount
+  };
+}
+
 @proxy
-class PathFindStream implements Stream<Alternative> {
+class PathFindStream implements Stream<PathFindStatus> {
 
   final Remote _remote;
-  final StreamController<Alternative> _streamController = new StreamController.broadcast();
+  final StreamController<PathFindStatus> _streamController = new StreamController.broadcast();
 
   PathFindStream._withRequest(Request pathFindRequest) : _remote = pathFindRequest.remote {
     _remote.on(Remote.OnPathFindStatus).where((r) => r.id == pathFindRequest.id).listen(_handleFollowUp);
@@ -28,7 +44,7 @@ class PathFindStream implements Stream<Alternative> {
   void close() {
     Request req = _remote.newRequest(Command.PATH_FIND);
     req.subcommand = "close";
-    req.request().then(_handleResponse);;
+    req.request().then(_handleResponse);
   }
 
   void _handleResponse(Response response) {
@@ -37,25 +53,10 @@ class PathFindStream implements Stream<Alternative> {
     _streamAll(response.result.alternatives);
   }
 
-  void _handleFollowUp(JsonObject message) =>
-      _streamAll(message.alternatives);
+  void _handleFollowUp(JsonObject message) => _streamAll(message.alternatives);
 
-  void _streamAll(Iterable<Alternative> alts) => alts.forEach((alt) => _streamController.add(alt));
+  void _streamAll(Iterable<PathFindStatus> alts) => alts.forEach((alt) => _streamController.add(alt));
 
   @override
   noSuchMethod(Invocation inv) => reflect(_streamController.stream).delegate(inv);
-}
-
-class Alternative {
-  List<Path> paths;
-  Amount sourceAmount;
-
-  toJson() => {
-      "paths_computed": paths,
-      "source_amount": sourceAmount
-  };
-  Alternative.fromJson(dynamic json) {
-    paths = json["paths_computed"];
-    sourceAmount = json["source_amount"];
-  }
 }

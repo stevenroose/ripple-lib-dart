@@ -64,6 +64,8 @@ abstract class RippleSerializedObject extends RippleSerialization {
       _fields[field] = value;
   }
 
+  bool _has(Field field) => _fields.containsKey(field);
+
   dynamic _get(Field field) {
     return _fields[field];
   }
