@@ -3,7 +3,10 @@ part of ripplelib.core;
 
 class AccountID extends Hash160 implements RippleSerializable {
 
-  static final AccountID XRP_ISSUER = new AccountID(BigInteger.ZERO);
+  static final AccountID ACCOUNT_ZERO = new AccountID(BigInteger.ZERO);
+  static final AccountID ACCOUNT_ONE  = new AccountID(BigInteger.ONE);
+
+  static final AccountID XRP_ISSUER = ACCOUNT_ZERO;
 
   factory AccountID(dynamic account) {
     // bytes

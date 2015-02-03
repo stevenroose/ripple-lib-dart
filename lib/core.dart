@@ -40,7 +40,7 @@ import "package:cipher/params/key_derivators/pbkdf2_parameters.dart";
 
 part 'src/core/ripple_utils.dart';
 
-part "src/core/account.dart";
+part 'src/core/account_id.dart';
 part "src/core/keypair.dart";
 
 part "src/core/serialization/field.dart";
@@ -51,6 +51,7 @@ part "src/core/serialization/ripple_serialization.dart";
 part "src/core/serialization/serialized_list.dart";
 
 // transactions
+part "src/core/transactions/affected_nodes.dart";
 part "src/core/transactions/transaction.dart";
 part "src/core/transactions/transaction_meta.dart";
 part "src/core/transactions/transaction_type.dart";
