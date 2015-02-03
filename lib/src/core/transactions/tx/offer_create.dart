@@ -1,5 +1,6 @@
 part of ripplelib.core;
 
+
 class OfferCreate extends Transaction {
 
   @override

@@ -8,6 +8,7 @@ dependencies:
   bignum: any
   browser: any
   cipher: any
+  collection: any
   cryptoutils: '>=0.1.9'
   crypto: any
   decimal: '>=0.1.3'
