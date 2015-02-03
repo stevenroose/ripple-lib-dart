@@ -20,6 +20,7 @@ export "core.dart";
 import "json.dart";
 
 
+part 'src/remote/client.dart';
 part 'src/remote/order_book.dart';
 part 'src/remote/path_find_stream.dart';
 part 'src/remote/remote.dart';
