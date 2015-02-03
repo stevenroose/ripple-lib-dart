@@ -22,8 +22,16 @@ class PathFindStream implements Stream<PathFindStatus> {
   final Remote _remote;
   final StreamController<PathFindStatus> _streamController = new StreamController.broadcast();
 
+  StreamSubscription _statusSub;
+
+  factory PathFindStream(Remote remote, AccountID sourceAccount, AccountID destinationAccount, Amount amount,
+                 {PathSet paths, List<AccountID> bridges}) {
+    return new PathFindStream._withRequest(
+        remote.makePathFindRequest(sourceAccount, destinationAccount, amount, paths: paths, bridges: bridges));
+  }
+
   PathFindStream._withRequest(Request pathFindRequest) : _remote = pathFindRequest.remote {
-    _remote.on(Remote.OnPathFindStatus).where((r) => r.id == pathFindRequest.id).listen(_handleFollowUp);
+    _statusSub = _remote.onPathFindStatus.where((r) => r.id == pathFindRequest.id).listen(_handleFollowUp);
     pathFindRequest.request().then(_handleResponse);
   }
 
@@ -42,6 +50,8 @@ class PathFindStream implements Stream<PathFindStatus> {
    * Close the path find stream.
    */
   void close() {
+    if(_statusSub != null)
+      _statusSub.cancel();
     Request req = _remote.newRequest(Command.PATH_FIND);
     req.subcommand = "close";
     req.request().then(_handleResponse);

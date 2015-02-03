@@ -1,5 +1,6 @@
 part of ripplelib.remote;
 
+
 class SubscriptionManager extends Object with Events {
 
   static final EventType OnSubscribed   = new EventType<JsonObject>();
@@ -8,51 +9,120 @@ class SubscriptionManager extends Object with Events {
   Stream<JsonObject> get onSubscribed   => on(OnSubscribed);
   Stream<JsonObject> get onUnsubscribed => on(OnUnsubscribed);
 
+  final Remote _remote;
+
   Set<SubscriptionStream> _streams = new Set<SubscriptionStream>();
   Set<AccountID> _accounts = new Set<AccountID>();
   Set<AccountID> _accountsProposed = new Set<AccountID>();
+  Set<OrderBookDetails> _orderBooks = new Set<OrderBookDetails>();
 
-  void addStream(SubscriptionStream stream) {
-    if(_streams.add(stream))
-      emit(OnSubscribed, _generateSubscriptionObject([stream], null, null));
+  SubscriptionManager._(this._remote);
+
+  Set<SubscriptionStream> get streams => new UnmodifiableSetView(_streams);
+  Set<AccountID>          get accounts => new UnmodifiableSetView(_accounts);
+  Set<AccountID>          get accountsProposed => new UnmodifiableSetView(_accountsProposed);
+  Set<OrderBookDetails>   get orderBooks => new UnmodifiableSetView(_orderBooks);
+
+  Future<Response> addStream(SubscriptionStream stream) {
+    _streams.add(stream);
+    return _subscribe(_generateSubscriptionObject(streams: [stream]));
   }
 
-  void removeStream(SubscriptionStream stream) {
-    if(_streams.remove(stream))
-      emit(OnUnsubscribed, _generateSubscriptionObject([stream], null, null));
+  Future<Response> removeStream(SubscriptionStream stream) {
+    _streams.remove(stream);
+    return _unsubscribe(_generateSubscriptionObject(streams: [stream]));
   }
 
-  void addAccount(AccountID account, [bool proposed = false]) {
+  Future<Response> addAccount(AccountID account, [bool proposed = false]) {
     if(proposed) {
-      if (_accountsProposed.add(account))
-        emit(OnSubscribed, _generateSubscriptionObject(null, null, [account]));
+      _accountsProposed.add(account);
+      return _subscribe(_generateSubscriptionObject(accountsProposed: [account]));
     } else {
-      if (_accounts.add(account))
-        emit(OnSubscribed, _generateSubscriptionObject(null, [account], null));
+      _accounts.add(account);
+      return _subscribe(_generateSubscriptionObject(accounts: [account]));
     }
   }
 
-  void removeAccount(AccountID account, [bool proposed = false]) {
+  Future<Response> removeAccount(AccountID account, [bool proposed = false]) {
     if(proposed) {
-      if (_accountsProposed.remove(account))
-        emit(OnUnsubscribed, _generateSubscriptionObject(null, null, [account]));
+      _accountsProposed.remove(account);
+      return _unsubscribe(_generateSubscriptionObject(accountsProposed: [account]));
     } else {
-      if (_accounts.remove(account))
-        emit(OnUnsubscribed, _generateSubscriptionObject(null, [account], null));
+      _accounts.remove(account);
+      return _unsubscribe(_generateSubscriptionObject(accounts: [account]));
     }
   }
 
-  JsonObject get subscriptionObject => _generateSubscriptionObject(_streams, _accounts, _accountsProposed);
+  Future<Response> addOrderBook(Issue takerGets, Issue takerPays, {AccountID taker, bool snapshot, bool both}) {
+    OrderBookDetails book = new OrderBookDetails(takerGets, takerPays, both);
+    _orderBooks.remove(book);
+    _orderBooks.add(book);
+    JsonObject bookObject = book.toJSON();
+    bookObject.taker = taker != null ? taker : AccountID.ACCOUNT_ONE;
+    if(snapshot != null)
+      bookObject.snapshot = snapshot;
+    return _subscribe(_generateSubscriptionObject(orderBooks: [bookObject]));
+  }
+
+  Future<Response> removeOrderBook(Issue takerGets, Issue takerPays, [bool both]) {
+    OrderBookDetails book = _orderBooks.lookup(new OrderBookDetails(takerGets, takerPays));
+    _orderBooks.remove(book);
+    JsonObject bookObject = book.toJSON();
+    if(both != null) // overwrite both value
+      bookObject.both = both;
+    return _unsubscribe(_generateSubscriptionObject(orderBooks: [bookObject]));
+  }
+
+  /**
+   * Remove all subscriptions.
+   */
+  Future<Response> removeAll() {
+    _streams.clear();
+    _accounts.clear();
+    _accountsProposed.clear();
+    _orderBooks.clear();
+    return _unsubscribe(subscriptionObject);
+  }
+
+  JsonObject get subscriptionObject => _generateSubscriptionObject(
+    streams: _streams,
+    accounts: _accounts,
+    accountsProposed: _accountsProposed,
+    orderBooks: _orderBooks.map((b) => b.toJSON()));
 
   // helper method
 
-  static JsonObject _generateSubscriptionObject(Iterable<SubscriptionStream> streams, Iterable<AccountID> accounts,
-      Iterable<AccountID> accountsProposed) {
+  Future<Response> _subscribe(JsonObject subObject) {
+    Request req = _remote.newRequest(Command.SUBSCRIBE)
+      ..updateJson(subObject);
+    return req.request().then((Response response) {
+      if(response.successful)
+        emit(OnSubscribed, subObject);
+      return response;
+    });
+  }
+
+  Future<Response> _unsubscribe(JsonObject subObject) {
+    Request req = _remote.newRequest(Command.UNSUBSCRIBE)
+      ..updateJson(subObject);
+    return req.request().then((Response response) {
+      if(response.successful)
+        emit(OnUnsubscribed, subObject);
+      return response;
+    });
+  }
+
+  static JsonObject _generateSubscriptionObject({Iterable<SubscriptionStream> streams, Iterable<AccountID> accounts,
+      Iterable<AccountID> accountsProposed, Iterable<JsonObject> orderBooks}) {
     JsonObject subs = new JsonObject();
     if(streams != null && !streams.isEmpty)
       subs.streams = streams.toList();
     if(accounts != null && !accounts.isEmpty)
       subs.accounts = accounts.toList();
+    if(accountsProposed != null && !accountsProposed.isEmpty)
+      subs.accounts_proposed = accountsProposed.toList();
+    if(orderBooks != null && !orderBooks.isEmpty)
+      subs.books = orderBooks.toList();
     return subs;
   }
 
@@ -75,4 +145,32 @@ class SubscriptionStream extends Enum {
   // required by Enum
   static SubscriptionStream valueOf(String subscriptionStream) => Enum.valueOf(SubscriptionStream, subscriptionStream);
   static List<SubscriptionStream> get values => Enum.values(SubscriptionStream);
+}
+
+class SubscriptionUpdate {
+
+}
+
+/**
+ * Use this class to store order books as subscriptions because they are identified only by taker_gets and taker_pays.
+ */
+class OrderBookDetails {
+  // perhaps use the active orderbook class here
+  final Issue takerGets;
+  final Issue takerPays;
+  bool both;
+  OrderBookDetails(this.takerGets, this.takerPays, [this.both]);
+  @override
+  bool operator ==(Object other) => other is OrderBookDetails &&
+      takerGets == other.takerGets && takerPays == other.takerPays;
+  @override
+  int get hashCode => takerGets.hashCode ^ ( takerPays.hashCode * 13);
+  JsonObject toJSON() {
+    JsonObject json = new JsonObject()
+      ..taker_gets = takerGets
+      ..taker_pays = takerPays;
+    if(both != null)
+      json.both = both;
+    return json;
+  }
 }

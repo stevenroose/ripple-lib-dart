@@ -6,76 +6,55 @@ part of ripplelib.remote;
  */
 abstract class Remote extends Object with Events {
 
-  static final Logger log = () {
-    hierarchicalLoggingEnabled = true;
-    return new Logger("ripplelib.remote");
-  }();
-  // (Remote).toString() gives just "Remote" instead of the full name
-  static void _log(String message, [Level level = Level.INFO]) => log.log(level, message);
+  static final Logger log = new Logger("ripplelib.remote");
 
   static final EventType OnConnected            = new EventType<Remote>();
   static final EventType OnDisconnected         = new EventType<Remote>();
   static final EventType OnMessage              = new EventType<JsonObject>();
+  static final EventType OnErrorMessage         = new EventType<JsonObject>();
   static final EventType OnSendMessage          = new EventType<JsonObject>();
   static final EventType OnLedgerClosed         = new EventType(); //TODO
   static final EventType OnPathFindStatus       = new EventType<JsonObject>();
   static final EventType OnSubscribed           = new EventType<JsonObject>();
   static final EventType OnUnsubscribed         = new EventType<JsonObject>();
-  static final EventType OnTransaction          = new EventType<TransactionResult>();
+  static final EventType OnProposedTransaction  = new EventType<TransactionResult>();
   static final EventType OnValidatedTransaction = new EventType<TransactionResult>();
 
   Stream<Remote>            get onConnected            => on(OnConnected);
   Stream<Remote>            get onDisconnected         => on(OnDisconnected);
   Stream<JsonObject>        get onMessage              => on(OnMessage);
+  Stream<JsonObject>        get onErrorMessage         => on(OnErrorMessage);
   Stream<JsonObject>        get onSendMessage          => on(OnSendMessage);
   Stream<Object>            get onLedgerClosed         => on(OnLedgerClosed); //TODO
   Stream<JsonObject>        get onPathFindStatus       => on(OnPathFindStatus);
   Stream<JsonObject>        get onSubscribed           => on(OnSubscribed);
   Stream<JsonObject>        get onUnsubscribed         => on(OnUnsubscribed);
-  Stream<TransactionResult> get onTransaction          => on(OnTransaction);
+  Stream<TransactionResult> get onProposedTransaction  => on(OnProposedTransaction);
   Stream<TransactionResult> get onValidatedTransaction => on(OnValidatedTransaction);
 
 
   int _requestID = 0;
-  LRUMap<int, Request> _pendingRequests = new LRUMap<int, Request>(capacity: 30);
+  LRUMap<int, Request> _pendingRequests = new LRUMap<int, Request>(capacity: 50);
 
-  SubscriptionManager subscriptions;
-
-  Remote() {
-    subscriptions = _initSubscriptionManager();
+  Remote._() {
+    _subscriptionManager = new SubscriptionManager._(this);
   }
 
-  /**
-   * Create SubscriptionManager and define handlers for new subscriptions.
-   */
-  SubscriptionManager _initSubscriptionManager() => new SubscriptionManager()
-    ..on(SubscriptionManager.OnSubscribed, (JsonObject subObject) {
-      _log("Subscribing: $subObject", Level.FINE);
-      Request req = newRequest(Command.SUBSCRIBE)..updateJson(subObject);
-      req.request().then((Response response) {
-        if(response.successful)
-          emit(OnSubscribed, subObject);
-      });
-    })
-    ..on(SubscriptionManager.OnUnsubscribed, (JsonObject subObject) {
-      _log("Unsubscribing: $subObject", Level.FINE);
-      Request req = newRequest(Command.UNSUBSCRIBE)..updateJson(subObject);
-      req.request().then((Response response) {
-        if(response.successful)
-          emit(OnUnsubscribed, subObject);
-      });
-    });
+  String get uri;
+
+  SubscriptionManager get subscriptions => _subscriptionManager;
+  SubscriptionManager _subscriptionManager;
 
   /* ABSTRACT METHODS */
 
   Future<Remote> connect();
-  void disconnect();
+    void disconnect();
   bool get isConnected;
 
   Future<Response> request(Request request) {
     _pendingRequests[request.id] = request;
     sendMessage(request);
-    return request.once(Request.OnResponse);
+    return request.onResponse.first;
   }
 
   /**
@@ -110,10 +89,11 @@ abstract class Remote extends Object with Events {
         emit(OnPathFindStatus, message);
         break;
       case MessageType.ERROR:
-        _handleError(message);
+        emit(OnErrorMessage, message);
+        handleError(message);
         break;
       default:
-        _log("Unhandled message: $message", Level.WARNING);
+        log.warning("Unhandled message: $message");
         break;
     }
   }
@@ -121,18 +101,18 @@ abstract class Remote extends Object with Events {
   void _handleResponse(JsonObject message) {
     Request request = _pendingRequests.remove(message.id);
     if(request == null) {
-      _log("Received response to unrecognized request: $message", Level.WARNING);
+      log.warning("Received response to unrecognized request: $message");
       return;
     }
     request.handleResponse(message);
   }
 
-  LRUMap<Hash256, bool> _latestTransactions = new LRUMap<Hash256, bool>(capacity: 100);
+  LRUMap<Hash256, bool> _latestTransactionsValidity = new LRUMap<Hash256, bool>(capacity: 100);
 
   void _handleTransaction(JsonObject message) {
     TransactionResult tx = new TransactionResult.fromJson(message);
-    bool lastValidated = _latestTransactions[tx.hash];
-    _latestTransactions[tx.hash] = tx.validated;
+    bool lastValidated = _latestTransactionsValidity[tx.hash];
+    _latestTransactionsValidity[tx.hash] = tx.validated;
     // do nothing when already known as valid tx
     if(lastValidated == true)
       return;
@@ -141,11 +121,11 @@ abstract class Remote extends Object with Events {
       emit(OnValidatedTransaction, tx);
     // emit transaction when not previously emitted
     if(lastValidated == null)
-      emit(OnTransaction, tx);
+      emit(OnProposedTransaction, tx);
   }
 
-  void _handleError(JsonObject message) {
-    _log("Received error: $message", Level.WARNING);
+  void handleError(JsonObject message) {
+    log.warning("Received error: $message");
   }
 
   void _updateServerInfo(JsonObject message) {
@@ -308,7 +288,9 @@ abstract class Remote extends Object with Events {
           makePathFindRequest(sourceAccount, destinationAccount, amount, paths: paths, bridges: bridges));
 
   /**
-   * It is advised to use [findPaths] instead.
+   * Do a one-time search for payment paths, it is not guaranteed that the best path will be provided.
+   *
+   * Use [findPaths] instead if you want an updating stream with the best payment path found.
    */
   Future<Response> requestPathFind(AccountID sourceAccount, AccountID destinationAccount, Amount amount,
                               {PathSet paths, List<AccountID> bridges}) =>

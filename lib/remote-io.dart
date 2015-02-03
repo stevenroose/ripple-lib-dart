@@ -13,15 +13,17 @@ class ServerRemote extends Remote {
 
   static void _log(String message, [Level level = Level.INFO]) => Remote.log.log(level, message);
 
-  final String url;
+  final String _uri;
   WebSocket _ws;
 
-  ServerRemote(String this.url) : super();
+  ServerRemote(String this._uri) : super();
+
+  String get uri => _uri;
 
   @override
   Future<Remote> connect() {
-    WebSocket.connect(url).then((socket) {
-      _log("Connected to websocket at $url");
+    WebSocket.connect(_uri).then((socket) {
+      _log("Connected to websocket at $_uri");
       socket.listen((message) {
         _log("Message received: $message", Level.FINER);
         handleMessage(message);
@@ -34,7 +36,7 @@ class ServerRemote extends Remote {
 
   @override
   void disconnect() {
-    _log("Disconnecting from websocket at $url");
+    _log("Disconnecting from websocket at $_uri");
     emit(Remote.OnDisconnected, null);
     _ws.close();
   }
