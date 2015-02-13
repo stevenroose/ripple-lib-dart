@@ -1,5 +1,6 @@
 part of ripplelib.remote;
 
+
 class Request extends RippleJsonObject with Events {
 
   static final EventType OnResponse = new EventType<Response>();
@@ -9,8 +10,6 @@ class Request extends RippleJsonObject with Events {
   Stream<Response> get onResponse => on(OnResponse);
   Stream<Response> get onSuccess  => on(OnSuccess);
   Stream<Response> get onError    => on(OnError);
-
-  static const Duration REQUEST_TIMEOUT = const Duration(minutes: 1);
 
   final Remote remote;
   final Command command;
@@ -22,15 +21,25 @@ class Request extends RippleJsonObject with Events {
     this["id"] = id;
   }
 
+  /**
+   * Copies this request with a new request ID from the remote.
+   */
+  Request copy() => remote.newRequest(command)..updateJson(this);
+
+  /**
+   * Update all fields from the given JSON object, except the "id" and "command" fields.
+   */
   void updateJson(JsonObject json) {
     json.forEach((k, v) {
-      this[k] = v;
+      if(k != "id" && k != "command") {
+        this[k] = v;
+      }
     });
   }
 
   Future<Response> request() => remote.request(this);
 
-  void handleResponse(JsonObject message) {
+  void _handleResponse(JsonObject message) {
     response = new Response(this, message);
     emit(OnResponse, response);
     emit(response.successful ? OnSuccess : OnError, response);

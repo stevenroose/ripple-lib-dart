@@ -38,9 +38,11 @@ void main() {
     });
     test("requestAccountInfo", () {
       expect(remote.requestAccountInfo(me).then((response) {
-        expect(response.result.account_data.Balance > 100, isTrue);
-        expect(response.result.account_data.PreviousTxnID.bytes.length, equals(32));
-        expect(response.result.account_data.Account, equals(me));
+        expect(response.result.account_data, new isInstanceOf<AccountRoot>());
+        AccountRoot root = response.result.account_data as AccountRoot;
+        expect(root.balance > 100, isTrue);
+        expect(root.previousTxId.bytes.length, equals(32));
+        expect(root.account, equals(me));
       }), completes);
     });
     test("requestAccountLines", () {

@@ -21,7 +21,7 @@ class AccountID extends Hash160 implements RippleSerializable {
         return new AccountID.fromBytes(CryptoUtils.hexToBytes(account));
       // base58check encoded "address"
       if(account.startsWith("r") && account.length >= 26)
-        return new AccountID.fromBytes(decodeAddress(account)).._address = account;
+        return new AccountID.fromBytes(RippleEncoding.decodeAccount(account)).._address = account;
       throw new FormatException("String does not represent an AccountID: $account");
     }
     // biginteger
@@ -37,7 +37,7 @@ class AccountID extends Hash160 implements RippleSerializable {
 
   String get address {
     if(_address == null)
-      _address = encodeAddress(bytes);
+      _address = RippleEncoding.encodeAccount(bytes);
     return _address;
   }
 
@@ -53,7 +53,7 @@ class AccountID extends Hash160 implements RippleSerializable {
   /* RIPPLE SERIALIZATION */
 
   @override
-  void toByteSink(ByteSink sink) {
+  void toByteSink(Sink sink) {
     sink.add(bytes);
   }
 
@@ -64,14 +64,4 @@ class AccountID extends Hash160 implements RippleSerializable {
 
   static const int VERSION_ACCOUNT = 0;
   static const String ALPHABET_ACCOUNT = "rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz";
-
-  static String encodeAddress(List<int> bytes) =>
-    new Base58CheckEncoder(ALPHABET_ACCOUNT, RippleUtils.sha256Digest).convert(new Base58CheckPayload(VERSION_ACCOUNT, bytes));
-
-  static List<int> decodeAddress(String address) {
-    Base58CheckPayload pl = new Base58CheckDecoder(ALPHABET_ACCOUNT, RippleUtils.sha256Digest).convert(address);
-    if(pl.version != VERSION_ACCOUNT || pl.payload.length != 20)
-      throw new FormatException("Invalid Base58Check account address encoding");
-    return pl.payload;
-  }
 }

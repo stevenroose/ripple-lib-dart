@@ -18,8 +18,8 @@ class OfferCreate extends Transaction {
   Amount get takerPays => _get(Field.TakerPays);
   set takerPays(Amount takerPays) => _put(Field.TakerPays, takerPays);
 
-  DateTime get expiration => _get(Field.Expiration);
-  set expiration(DateTime expiration) => _put(Field.Expiration, expiration);
+  DateTime get expiration => new RippleDateTime.fromSecondsSinceRippleEpoch(_get(Field.Expiration));
+  set expiration(DateTime expiration) => _put(Field.Expiration, RippleDateTime.calculateSecondsSinceRippleEpoch(expiration));
 
   int get offerSequence => _get(Field.OfferSequence);
   set offerSequence(int offerSequence) => _put(Field.OfferSequence, offerSequence);

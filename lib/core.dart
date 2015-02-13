@@ -38,9 +38,10 @@ import "package:cipher/digests/sha512.dart";
 import "package:cipher/params/key_derivators/pbkdf2_parameters.dart";
 
 
-part 'src/core/ripple_utils.dart';
+part "src/core/ripple_encoding.dart";
+part "src/core/ripple_utils.dart";
 
-part 'src/core/account_id.dart';
+part "src/core/account_id.dart";
 part "src/core/keypair.dart";
 
 part "src/core/serialization/field.dart";
@@ -48,7 +49,7 @@ part "src/core/serialization/field_requirement.dart";
 part "src/core/serialization/field_type.dart";
 part "src/core/serialization/ripple_serialized_object.dart";
 part "src/core/serialization/ripple_serialization.dart";
-part "src/core/serialization/serialized_list.dart";
+part 'src/core/serialization/ripple_serialized_list.dart';
 
 // transactions
 part "src/core/transactions/affected_nodes.dart";
@@ -63,10 +64,20 @@ part "src/core/transactions/tx/offer_cancel.dart";
 part "src/core/transactions/tx/offer_create.dart";
 part "src/core/transactions/tx/trust_set.dart";
 
+// ledger entries
+part "src/core/ledger/ledger_entry.dart";
+part "src/core/ledger/le/account_root.dart";
+part "src/core/ledger/le/offer.dart";
+part "src/core/ledger/le/ripple_state.dart";
+
 part "src/core/amount.dart";
 part "src/core/currency.dart";
+part "src/core/flags.dart";
 part "src/core/issue.dart";
 part "src/core/path.dart";
+part "src/core/ripple_date_time.dart";
+part "src/core/trust_line.dart";
 
 part "src/core/enums/engine_result.dart";
+part "src/core/enums/hash_prefix.dart";
 part "src/core/enums/ledger_entry_type.dart";

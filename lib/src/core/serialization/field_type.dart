@@ -15,7 +15,7 @@ class FieldType extends Enum {
   static const FieldType VARLEN = const FieldType._(7, Uint8List);
   static const FieldType ACCOUNT = const FieldType._(8, AccountID);
 
-  static const FieldType OBJECT = const FieldType._(14, RippleSerialization);
+  static const FieldType OBJECT = const FieldType._(14, RippleSerializedObject);
   static const FieldType ARRAY = const FieldType._(15, List);
 
   static const FieldType UINT8 = const FieldType._(16, int);
@@ -24,7 +24,7 @@ class FieldType extends Enum {
   static const FieldType VECTOR256 = const FieldType._(19, List);
 
   static const FieldType TRANSACTION = const FieldType._(10001, Transaction);
-  static const FieldType LEDGER_ENTRY = const FieldType._(10002, Object); //TODO
+  static const FieldType LEDGER_ENTRY = const FieldType._(10002, LedgerEntry);
   static const FieldType VALIDATION = const FieldType._(10003, Object); //TODO
 
   final int id;

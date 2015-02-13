@@ -1,7 +1,7 @@
 part of ripplelib.core;
 
 abstract class RippleSerializable {
-  void toByteSink(ByteSink sink);
+  void toByteSink(Sink byteSink);
   Uint8List toBytes();
   dynamic toJson();
 }
@@ -10,7 +10,7 @@ abstract class RippleSerialization implements RippleSerializable {
 
   /* METHODS TO IMPLEMENT */
 
-  void toByteSink(ByteSink sink);
+  void toByteSink(Sink sink);
 
   dynamic toJson();
 
@@ -27,7 +27,7 @@ abstract class RippleSerialization implements RippleSerializable {
   /* HELPER METHODS */
 
   // helper methods for serialization
-  void _writeField(ByteSink sink, Field field, dynamic value) {
+  void _writeField(Sink sink, Field field, dynamic value) {
     if(!field.isSerialized)
       throw new StateError("Field $field should not be serialized");
     // write field header
@@ -56,7 +56,7 @@ abstract class RippleSerialization implements RippleSerializable {
     throw new StateError("Vl length to high: $length");
   }
 
-  void _writeSerializedValue(ByteSink sink, FieldType type, dynamic value) {
+  void _writeSerializedValue(Sink sink, FieldType type, dynamic value) {
     if(value is RippleSerializable)
       value.toByteSink(sink);
     else
@@ -67,11 +67,17 @@ abstract class RippleSerialization implements RippleSerializable {
       sink.add(Field.ArrayEndMarker.bytes);
   }
 
-  void _writeNativeType(ByteSink sink, FieldType type, dynamic value) {
+  void _writeNativeType(Sink sink, FieldType type, dynamic value) {
     // first convert from native classes to FieldType-compliant values
     switch(value.runtimeType) {
+      case RippleDateTime:
+        value = value.secondsSinceRippleEpoch;
+        break;
       case DateTime:
-        value = RippleUtils.getSecondsSinceRippleEpoch(value);
+        value = RippleDateTime.calculateSecondsSinceRippleEpoch(value);
+        break;
+      case Flags:
+        value = value.value;
         break;
     }
     // then serialize FieldType-compliant values
@@ -94,14 +100,15 @@ abstract class RippleSerialization implements RippleSerializable {
         sink.add(value.bytes);
         break;
       case FieldType.VARLEN:
-        if(value is String) value = const Utf8Encoder().convert(value);
+        if(value is String)
+          value = const Utf8Encoder().convert(value);
         sink.add(value);
         break;
     //TODO complete
     }
   }
 
-  void _writeUint64(ByteSink sink, BigInteger uint64) {
+  void _writeUint64(Sink sink, BigInteger uint64) {
     sink.add(RippleUtils.bigIntegerToBytes(uint64, 8));
   }
 

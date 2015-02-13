@@ -17,15 +17,16 @@ class RippleJsonCodec extends JsonCodec {
 class RippleJsonEncoder extends JsonEncoder {
 
   static dynamic _toEncodable(dynamic object) {
-//    print("Encoding object of type ${object.runtimeType}");
     if(object is RippleSerializable)
       return object.toJson();
+    if(object is RippleDateTime)
+      return object.secondsSinceRippleEpoch;
     if(object is DateTime)
-      return RippleUtils.getSecondsSinceRippleEpoch(object);
+      return new RippleDateTime.fromDateTime(object).secondsSinceRippleEpoch;
     if(object is Decimal)
       return object.toString();
     if(object is Hash)
-      return (object as Hash).toHex();
+      return object.toHex();
     return object.toJson();
   }
 
@@ -37,15 +38,18 @@ class RippleJsonDecoder extends JsonDecoder {
 
   static final Map<String, Function> _revivers = {
       "account":                (j) => new AccountID.fromJson(j),
+      "account_data":           (j) => new AccountRoot.fromJson(j),
       "account_hash":           (j) => new Hash256(j),
       "Account":                (j) => new AccountID.fromJson(j),
       "AffectedNodes":          (j) => _convertObjectList(j, _mapObjectByFirstKey),
       "alternatives":           (j) => _convertObjectList(j, (j) => new PathFindStatus.fromJson(j)),
       "Amount":                 (j) => new Amount.fromJson(j),
       "amount":                 (j) => Decimal.parse(j),
+      "asks":                   (j) => _convertObjectList(j, (j) => new Offer.fromJson(j)),
       "balance":                (j) => Decimal.parse(j),
       "Balance":                (j) => new Amount.fromJson(j),
-      "close_time":             (j) => RippleUtils.dateTimeFromSecondsSinceRippleEpoch(j),
+      "bids":                   (j) => _convertObjectList(j, (j) => new Offer.fromJson(j)),
+      "close_time":             (j) => new RippleDateTime.fromSecondsSinceRippleEpoch(j),
       "CreatedNode":            (j) => new CreatedNode.fromJson(j),
       "currency":               (j) => new Currency.fromJson(j),
       "DeletedNode":            (j) => new DeletedNode.fromJson(j),
@@ -54,25 +58,32 @@ class RippleJsonDecoder extends JsonDecoder {
       "Destination":            (j) => new AccountID.fromJson(j),
       "EmailHash":              (j) => new Hash128(j),
       "engine_result":          (j) => EngineResult.fromName(j),
-      "Expiration":             (j) => RippleUtils.dateTimeFromSecondsSinceRippleEpoch(j),
+      "Expiration":             (j) => new RippleDateTime.fromSecondsSinceRippleEpoch(j),
       "Fee":                    (j) => new Amount.fromJson(j),
       "hash":                   (j) => j.length == 64 ? new Hash256(j) : j,
       "issuer":                 (j) => new AccountID.fromJson(j),
       "LedgerEntryType":        (j) => LedgerEntryType.fromJsonKey(j),
       "LedgerIndex":            (j) => new Hash256(j),
       "ledger_hash":            (j) => new Hash256(j),
+      "ledger_time":            (j) => new RippleDateTime.fromSecondsSinceRippleEpoch(j),
+      "limit":                  (j) => (j is int ? j : Decimal.parse(j)), // limit is both in trust lines as some responses
+      "limit_peer":             (j) => Decimal.parse(j),
+      "lines":                  (j) => _convertObjectList(j, (j) => new TrustLine.fromJson(j)),
       "Memo":                   (j) => new Memo.fromJson(j),
       "Memos":                  (j) => _convertObjectList(j, _mapObjectByFirstKey),
       "meta":                   (j) => new TransactionMeta.fromJson(j),
       "metaData":               (j) => new TransactionMeta.fromJson(j),
       "ModifiedNode":           (j) => new ModifiedNode.fromJson(j),
+      "offers":                 (j) => _convertObjectList(j, (j) => new Offer.fromJson(j)),
       "parent_hash":            (j) => new Hash256(j),
       "paths_computed":         (j) => _convertObjectList(j, (j) => new Path.fromJson(j)),
       "PreviousTxnID":          (j) => new Hash256(j),
+      "pubkey_node":            (j) => CryptoUtils.hexToBytes(j),
       "receive_currencies":     (j) => _convertObjectList(j, (j) => new Currency.fromJson(j)),
       "send_currencies":        (j) => _convertObjectList(j, (j) => new Currency.fromJson(j)),
+      "server_state":           (j) => ServerState.fromJsonValue(j),
       "SigningPubKey":          (j) => CryptoUtils.hexToBytes(j),
-      "source_amount":         (j) => new Amount.fromJson(j),
+      "source_amount":          (j) => new Amount.fromJson(j),
       "taker_pays":             (j) => new Amount.fromJson(j),
       "taker_gets":             (j) => new Amount.fromJson(j),
       "TakerPays":              (j) => new Amount.fromJson(j),
@@ -83,11 +94,11 @@ class RippleJsonDecoder extends JsonDecoder {
       "transaction_hash":       (j) => new Hash256(j),
       "TransactionType":        (j) => TransactionType.fromJsonValue(j),
       "tx":                     (j) => new Transaction.fromJson(j),
+      "tx_json":                (j) => new Transaction.fromJson(j)
   };
 
   static dynamic _reviver(Object key, Object value) {
     if (_revivers.containsKey(key)) {
-//      print("Reviving object with key $key");
       return _revivers[key](value);
     }
     if(value is Map)
@@ -98,7 +109,7 @@ class RippleJsonDecoder extends JsonDecoder {
   static List _convertObjectList(List objectList, Function mapper) =>
       new List.from(objectList.map(mapper));
 
-  static Function _mapObjectByFirstKey = (Map object) => object[object.keys.first];
+  static Object _mapObjectByFirstKey(Map object) => object[object.keys.first];
 
   RippleJsonDecoder() : super(_reviver);
 }

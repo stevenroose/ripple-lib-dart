@@ -5,10 +5,12 @@ import "dart:async";
 import "dart:collection";
 @MirrorsUsed(symbols: "", override: "*", targets: "Stream")
 import "dart:mirrors";
+import "dart:typed_data";
 
 import "package:cryptoutils/cryptoutils.dart";
 
-import "package:collection/wrappers.dart";
+import "package:collection/wrappers.dart" hide UnmodifiableMapView;
+import "package:decimal/decimal.dart";
 import "package:enums/enums.dart";
 import "package:events/events.dart";
 import "package:json_object/json_object.dart";
@@ -20,13 +22,18 @@ export "core.dart";
 import "json.dart";
 
 
-part 'src/remote/order_book.dart';
-part 'src/remote/path_find_stream.dart';
-part 'src/remote/remote.dart';
-part 'src/remote/request.dart';
-part 'src/remote/response.dart';
-part 'src/remote/subscription_manager.dart';
-part 'src/remote/transaction_result.dart';
+part "src/remote/account.dart";
+part "src/remote/ledger_info.dart";
+part "src/remote/order_book.dart";
+part "src/remote/paged_transaction_stream.dart";
+part "src/remote/path_find_stream.dart";
+part "src/remote/payment_process.dart";
+part "src/remote/remote.dart";
+part "src/remote/request.dart";
+part "src/remote/response.dart";
+part "src/remote/server_info.dart";
+part "src/remote/subscription_manager.dart";
+part "src/remote/transaction_result.dart";
 
 part "src/remote/enums/command.dart";
 part "src/remote/enums/message_type.dart";

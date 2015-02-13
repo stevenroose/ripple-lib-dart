@@ -26,7 +26,7 @@ class TransactionType extends Enum implements RippleSerializable {
   static TransactionType fromCode(int code) => TransactionType.values.firstWhere((tt) => tt.code == code);
 
   @override
-  void toByteSink(ByteSink sink) => sink.add(code);
+  void toByteSink(Sink sink) => sink.add(code);
 
   @override
   Uint8List toBytes() => new Uint8List(1)..[0] = code;

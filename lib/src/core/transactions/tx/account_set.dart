@@ -24,8 +24,8 @@ class AccountSet extends Transaction {
   Hash128 get emailHash => _get(Field.EmailHash);
   set emailHash(Hash128 emailHash) => _put(Field.EmailHash, emailHash);
 
-  Key get messageKey => _get(Field.MessageKey);
-  set messageKey(Key messageKey) => _put(Field.MessageKey, messageKey);
+  KeyPair get messageKey => new KeyPair.public(_get(Field.MessageKey));
+  set messageKey(KeyPair messageKey) => _put(Field.MessageKey, messageKey.publickey);
 
   int get setFlag => _get(Field.SetFlag);
   set setFlag(int setFlag) => _put(Field.SetFlag, setFlag);

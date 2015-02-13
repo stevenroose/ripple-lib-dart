@@ -22,7 +22,6 @@ class Issue {
 
   bool get isNative => this == XRP;
 
-  //TODO should return false for XRP?
   bool get hasIssuer => issuer != null;
 
   Amount amount(Decimal amount) => new Amount(amount, currency, issuer);

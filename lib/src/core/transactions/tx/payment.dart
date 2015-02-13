@@ -14,6 +14,13 @@ class Payment extends Transaction {
       Field.InvoiceID:      FieldRequirement.OPTIONAL
   }..addAll(Transaction._rippleFormatMap);
 
+  Payment(AccountID destination, Amount amount, {Iterable<Path> paths, Amount sendMax}) : super(TransactionType.PAYMENT) {
+    this.destination = destination;
+    this.amount = amount;
+    this.paths = paths is PathSet ? paths : new PathSet(paths);
+    this.sendMax = sendMax;
+  }
+
   TransactionType get type => TransactionType.PAYMENT;
   set type(TransactionType type) => throw new StateError("Cannot change transaction type");
 

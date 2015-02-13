@@ -43,7 +43,7 @@ class Amount extends RippleSerialization implements Comparable<Amount> {
     // default values
     if (currency == null)
       currency = Currency.XRP;
-    if (issuer == null)
+    if (issuer == null && currency == Currency.XRP)
       issuer = AccountID.XRP_ISSUER;
     // different accepted amount types
     value = _convertDecimalAmount(value);
@@ -74,14 +74,21 @@ class Amount extends RippleSerialization implements Comparable<Amount> {
 
   bool get isNative => currency == Currency.XRP && issuer == AccountID.XRP_ISSUER;
 
+  bool get hasIssuer => issuer != null;
+
   BigInteger get xrpDrops {
     if (!isNative)
       throw new StateError("Amount is not native");
     return _exactBigIntegerScaledByPowerOfTen(XRP_DROP_SCALE);
   }
 
+  Amount update({dynamic value, Currency currency, AccountID issuer}) =>
+      new Amount._(value != null ? _convertDecimalAmount(value) : this.value,
+                   currency != null ? currency : this.currency,
+                   issuer != null ? issuer : this.issuer);
+
   @override
-  String toString() => isNative ? "$value XRP" : "$value $currency/$issuer";
+  String toString() => isNative ? "$value XRP" : "$value $currency" + (hasIssuer ? "/$issuer" : "");
 
   String toDropsString() => xrpDrops.toString();
 
@@ -124,11 +131,15 @@ class Amount extends RippleSerialization implements Comparable<Amount> {
   /* JSON */
 
   @override
-  toJson() => isNative ? toDropsString() : {
+  toJson() {
+    if(!hasIssuer)
+      throw new StateError("Cannot serialize currency without issuer");
+    return isNative ? toDropsString() : {
       "currency": currency,
       "value": value.toString(),
       "issuer": issuer
-  };
+    };
+  }
 
   factory Amount.fromJson(var json) {
     if (json is String)
@@ -140,7 +151,9 @@ class Amount extends RippleSerialization implements Comparable<Amount> {
   /* SERIALIZATION */
 
   @override
-  void toByteSink(ByteSink sink) {
+  void toByteSink(Sink sink) {
+    if(!hasIssuer)
+      throw new StateError("Cannot serialize currency without issuer");
     BigInteger mantissa = _calculateMantissa();
     if (isNative) {
       if (!isNegative)

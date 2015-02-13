@@ -24,22 +24,26 @@ class KeyPair {
 
   KeyPair._internal(this._priv, this._pub);
 
-  factory KeyPair.public(Uint8List publicKey) {
-    if(publicKey is! Uint8List)
+  factory KeyPair.public(dynamic public) {
+    if(public is String)
+      public = RippleEncoding.decodePublicKey(public);
+    if(public is! Uint8List)
       throw new ArgumentError("Public key must be of type Uint8List");
-    return new KeyPair._internal(null, publicKey);
+    return new KeyPair._internal(null, public);
   }
 
-  factory KeyPair.private(dynamic privateKey, [Uint8List publicKey]) {
-    if(privateKey is Uint8List)
-      privateKey = new BigInteger.fromBytes(1, privateKey);
-    if(privateKey is! BigInteger)
+  factory KeyPair.private(dynamic private, [Uint8List public]) {
+    if(private is String)
+      private = RippleEncoding.decodePrivateKey(private);
+    if(private is Uint8List)
+      private = new BigInteger.fromBytes(1, private);
+    if(private is! BigInteger)
       throw new ArgumentError("Private key must be either of type BigInteger or Uint8List");
-    if(publicKey != null && publicKey is! Uint8List)
+    if(public != null && public is! Uint8List)
       throw new ArgumentError("Public key must be of type Uint8List");
-    if(publicKey == null)
-      publicKey = publicKeyFromPrivateKey(privateKey);
-    return new KeyPair._internal(privateKey, publicKey);
+    if(public == null)
+      public = publicKeyFromPrivateKey(private);
+    return new KeyPair._internal(private, public);
   }
 
   BigInteger get privateKey => _priv;
@@ -51,9 +55,26 @@ class KeyPair {
     return _pubKeyHash;
   }
 
+  /**
+   * Returns a 32 byte array containing the private key.
+   */
+  Uint8List get privateKeyBytes {
+    if(_priv == null)
+      return null;
+    return RippleUtils.bigIntegerToBytes(_priv, 32);
+  }
+
   bool get hasPrivateKey => _priv != null;
 
-  AccountID get accountID => new AccountID(pubKeyHash);
+  /* RIPPLE ENCODINGS */
+  AccountID get account => new AccountID(pubKeyHash);
+
+  String get encodedPublicKey => RippleEncoding.encodePublicKey(publickey);
+  String get encodedPrivateKey {
+    if(!hasPrivateKey)
+      throw new StateError("This key is only a public key");
+    return RippleEncoding.encodePrivateKey(privateKeyBytes);
+  }
 
 
   /**
@@ -68,7 +89,7 @@ class KeyPair {
     if(!hasPrivateKey)
       throw new StateError("This KeyPair is only a public key");
 
-    ECDSASigner signer = _createSigner(new ECPrivateKey(privateKey, EC_PARAMS));
+    ECDSASigner signer = _createSigner(new ECPrivateKey(privateKey, EC_PARAMS), true);
     ECSignature ecSig = signer.generateSignature(input.asBytes());
     ECDSASignature signature = new ECDSASignature(ecSig.r, ecSig.s);
     signature.ensureCanonical();
@@ -76,23 +97,17 @@ class KeyPair {
   }
 
   bool verify(Uint8List data, ECDSASignature signature, Uint8List pubkey) {
-    ECDSASigner signer = _createSigner(new ECPublicKey(EC_PARAMS.curve.decodePoint(pubkey), EC_PARAMS));
+    ECDSASigner signer = _createSigner(new ECPublicKey(EC_PARAMS.curve.decodePoint(pubkey), EC_PARAMS), false);
     ECSignature ecSig = new ECSignature(signature.r, signature.s);
     return signer.verifySignature(data, ecSig);
   }
 
-  static ECDSASigner _createSigner(dynamic key) {
-    var params;
-    if(key is ECPublicKey)
-      params = new PublicKeyParameter(key);
-    else if(key is ECPrivateKey)
-      params = new PrivateKeyParameter(key);
-    else throw new ArgumentError("Something went wrong");
-
+  static ECDSASigner _createSigner(dynamic key, bool forSigning) {
+    var params = forSigning ? new PrivateKeyParameter(key) : new PublicKeyParameter(key);
     Mac signerMac = new HMac(new SHA256Digest(), 64);
     // = new Mac("SHA-256/HMAC")
     return new ECDSASigner(null, signerMac)
-      ..init(params is PrivateKeyParameter, params);
+      ..init(forSigning, params);
   }
 
 

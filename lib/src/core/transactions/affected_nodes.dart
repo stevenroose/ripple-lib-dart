@@ -16,6 +16,19 @@ abstract class AffectedNode extends RippleSerializedObject {
   Hash256 get ledgerIndex => _get(Field.LedgerIndex);
   set ledgerIndex(Hash256 ledgerIndex) => _put(Field.LedgerIndex, ledgerIndex);
 
+  Map findFinalFields();
+
+  LedgerEntry constructLedgerEntry() {
+    LedgerEntry le = new LedgerEntry._newInstanceOf(ledgerEntryType);
+    _fields.forEach((field, value) {
+      if(field != Field.NewFields && field != Field.PreviousFields && field != Field.FinalFields) {
+        le._put(field, value);
+      }
+    });
+    findFinalFields().forEach((field, value) => le._put(Field.fromJsonKey(field), value));
+    return le;
+  }
+
   /**
    * Parse an AffectedNode JSON object: an object consisting of a single
    * key (the affected type) with as value the actual AffectedNode object.
@@ -48,6 +61,8 @@ class CreatedNode extends AffectedNode {
 
   Map get newFields => _get(Field.NewFields);
 
+  Map findFinalFields() => newFields;
+
   CreatedNode.fromJson(dynamic json) : super._fromJson(json);
 }
 
@@ -61,6 +76,8 @@ class DeletedNode extends AffectedNode {
 
   Map get finalFields => _get(Field.FinalFields);
   Map get previousFields => _get(Field.PreviousFields);
+
+  Map findFinalFields() => finalFields;
 
   DeletedNode.fromJson(dynamic json) : super._fromJson(json);
 }
@@ -76,6 +93,8 @@ class ModifiedNode extends AffectedNode {
 
   Map get finalFields => _get(Field.FinalFields);
   Map get previousFields => _get(Field.PreviousFields);
+
+  Map findFinalFields() => finalFields;
 
   ModifiedNode.fromJson(dynamic json) : super._fromJson(json);
 }

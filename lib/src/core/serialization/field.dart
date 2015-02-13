@@ -225,22 +225,20 @@ class Field extends Enum implements Comparable<Field> {
     int name = field.id;
     int type = field.type.id;
     List<int> header = new List<int>();
-
     if (type < 16) {
-      if (name < 16) // common type, common name
+      if (name < 16) {
+        // common type, common name
         header.add((type << 4) | name);
-      else {
+      } else {
         // common type, uncommon name
         header.add(type << 4);
         header.add(name);
       }
-    }
-    else if (name < 16) {
+    } else if (name < 16) {
       // uncommon type, common name
       header.add(name);
       header.add(type);
-    }
-    else {
+    } else {
       // uncommon type, uncommon name
       header.add(0);
       header.add(type);

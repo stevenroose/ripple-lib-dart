@@ -40,6 +40,22 @@ abstract class RippleUtils {
   }
 
   /**
+   * Converts the integer to a byte array in big endian. Ony positive integers allowed.
+   */
+  static Uint8List uintToBytesBE(int val, [int size = -1]) {
+    if(val < 0) throw new ArgumentError("Only positive values allowed.");
+    List<int> result = new List();
+    while(val > 0) {
+      int mod = val & 0xff;
+      val = val >> 8;
+      result.insert(0, mod);
+    }
+    if(size >= 0 && result.length > size) throw new ArgumentError("Value doesn't fit in given size.");
+    while(result.length < size) result.insert(0, 0);
+    return new Uint8List.fromList(result);
+  }
+
+  /**
    * The regular BigInteger.toByteArray() method isn't quite what we often need: it appends a
    * leading zero to indicate that the number is positive and may need padding.
    */
@@ -53,25 +69,6 @@ abstract class RippleUtils {
     int length = min(biBytes.length, numBytes);
     bytes.setRange(numBytes - length, numBytes, biBytes.sublist(start, start + length));
     return bytes;
-  }
-
-  /* RIPPLE TIME */
-
-  static final DateTime RIPPLE_EPOCH = new DateTime.utc(2000, 1, 1, 0, 0, 0, 0);
-
-  /**
-   * Convert milliseconds since the Ripple epoch to a [DateTime] object.
-   */
-  static DateTime dateTimeFromSecondsSinceRippleEpoch(int secondsSinceRippleEpoch) =>
-      RIPPLE_EPOCH.add(new Duration(seconds: secondsSinceRippleEpoch));
-
-  /**
-   * Get the milliseconds since thr Ripple epoch from this date.
-   */
-  static int getSecondsSinceRippleEpoch(DateTime dateTime) {
-    if(dateTime.isBefore(RIPPLE_EPOCH))
-      throw new ArgumentError("Given time was before the Ripple epoch: $dateTime");
-    return dateTime.difference(RIPPLE_EPOCH).inSeconds;
   }
 
   static const int _XRP_DROPS = 1000000;

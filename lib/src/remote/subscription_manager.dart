@@ -18,6 +18,20 @@ class SubscriptionManager extends Object with Events {
 
   SubscriptionManager._(this._remote);
 
+  /**
+   * This constructor does not make the actual subscriptions. Use [resubAll()] to do this.
+   */
+  SubscriptionManager._fromSubscriptionObject(this._remote, JsonObject subs) {
+    if(subs.containsKey("streams"))
+      _streams = new Set.from(subs.streams);
+    if(subs.containsKey("accounts"))
+      _accounts = new Set.from(subs.accounts);
+    if(subs.containsKey("accounts_proposed"))
+      _accountsProposed = new Set.from(subs.accounts_proposed);
+    if(subs.containsKey("books"))
+      _orderBooks = new Set.from(subs.books.map((j) => new OrderBookDetails.fromJson(j)));
+  }
+
   Set<SubscriptionStream> get streams => new UnmodifiableSetView(_streams);
   Set<AccountID>          get accounts => new UnmodifiableSetView(_accounts);
   Set<AccountID>          get accountsProposed => new UnmodifiableSetView(_accountsProposed);
@@ -77,11 +91,19 @@ class SubscriptionManager extends Object with Events {
    * Remove all subscriptions.
    */
   Future<Response> removeAll() {
+    JsonObject subs = subscriptionObject;
     _streams.clear();
     _accounts.clear();
     _accountsProposed.clear();
     _orderBooks.clear();
-    return _unsubscribe(subscriptionObject);
+    return _unsubscribe(subs);
+  }
+
+  /**
+   * Explicitly resubscribe to all open subscriptions.
+   */
+  Future<Response> resubAll() {
+    return _subscribe(subscriptionObject);
   }
 
   JsonObject get subscriptionObject => _generateSubscriptionObject(
@@ -147,9 +169,6 @@ class SubscriptionStream extends Enum {
   static List<SubscriptionStream> get values => Enum.values(SubscriptionStream);
 }
 
-class SubscriptionUpdate {
-
-}
 
 /**
  * Use this class to store order books as subscriptions because they are identified only by taker_gets and taker_pays.
@@ -158,13 +177,20 @@ class OrderBookDetails {
   // perhaps use the active orderbook class here
   final Issue takerGets;
   final Issue takerPays;
-  bool both;
+  final bool both;
   OrderBookDetails(this.takerGets, this.takerPays, [this.both]);
   @override
   bool operator ==(Object other) => other is OrderBookDetails &&
       takerGets == other.takerGets && takerPays == other.takerPays;
   @override
   int get hashCode => takerGets.hashCode ^ ( takerPays.hashCode * 13);
+  @override
+  String toString() => "OrderBook(get:$takerGets; pay:$takerPays)";
+
+  OrderBookDetails.fromJson(Map json) :
+      takerGets = json["taker_gets"],
+      takerPays = json["taker_pays"],
+      both = json["both"];
   JsonObject toJSON() {
     JsonObject json = new JsonObject()
       ..taker_gets = takerGets

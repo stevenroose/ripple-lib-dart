@@ -16,7 +16,6 @@ class PathFindStatus {
   };
 }
 
-@proxy
 class PathFindStream implements Stream<PathFindStatus> {
 
   final Remote _remote;
@@ -50,6 +49,7 @@ class PathFindStream implements Stream<PathFindStatus> {
    * Close the path find stream.
    */
   void close() {
+    _streamController.close();
     if(_statusSub != null)
       _statusSub.cancel();
     Request req = _remote.newRequest(Command.PATH_FIND);

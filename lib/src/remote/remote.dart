@@ -15,8 +15,6 @@ abstract class Remote extends Object with Events {
   static final EventType OnSendMessage          = new EventType<JsonObject>();
   static final EventType OnLedgerClosed         = new EventType(); //TODO
   static final EventType OnPathFindStatus       = new EventType<JsonObject>();
-  static final EventType OnSubscribed           = new EventType<JsonObject>();
-  static final EventType OnUnsubscribed         = new EventType<JsonObject>();
   static final EventType OnProposedTransaction  = new EventType<TransactionResult>();
   static final EventType OnValidatedTransaction = new EventType<TransactionResult>();
 
@@ -27,8 +25,6 @@ abstract class Remote extends Object with Events {
   Stream<JsonObject>        get onSendMessage          => on(OnSendMessage);
   Stream<Object>            get onLedgerClosed         => on(OnLedgerClosed); //TODO
   Stream<JsonObject>        get onPathFindStatus       => on(OnPathFindStatus);
-  Stream<JsonObject>        get onSubscribed           => on(OnSubscribed);
-  Stream<JsonObject>        get onUnsubscribed         => on(OnUnsubscribed);
   Stream<TransactionResult> get onProposedTransaction  => on(OnProposedTransaction);
   Stream<TransactionResult> get onValidatedTransaction => on(OnValidatedTransaction);
 
@@ -36,11 +32,17 @@ abstract class Remote extends Object with Events {
   int _requestID = 0;
   LRUMap<int, Request> _pendingRequests = new LRUMap<int, Request>(capacity: 50);
 
-  Remote._() {
+  Remote(bool this._trusted) {
     _subscriptionManager = new SubscriptionManager._(this);
   }
 
   String get uri;
+
+  bool _trusted;
+  bool get isTrusted => _trusted;
+
+  @override
+  String toString() => "Ripple remote on $uri";
 
   SubscriptionManager get subscriptions => _subscriptionManager;
   SubscriptionManager _subscriptionManager;
@@ -100,11 +102,11 @@ abstract class Remote extends Object with Events {
 
   void _handleResponse(JsonObject message) {
     Request request = _pendingRequests.remove(message.id);
-    if(request == null) {
+    if(request != null) {
+      request._handleResponse(message);
+    } else {
       log.warning("Received response to unrecognized request: $message");
-      return;
     }
-    request.handleResponse(message);
   }
 
   LRUMap<Hash256, bool> _latestTransactionsValidity = new LRUMap<Hash256, bool>(capacity: 100);
@@ -134,7 +136,12 @@ abstract class Remote extends Object with Events {
 
   Request newRequest(Command cmd) => new Request(this, cmd, _requestID++);
 
-  /* ALL SPECIFIC REQUEST METHODS */
+  /**
+   *  ALL SPECIFIC REQUEST METHODS FOR THE RIPPLED API
+   *
+   *  For more info on all API calls, visit
+   *  https://ripple.com/build/rippled-apis/
+   */
 
   Future<Response> requestAccountCurrencies(dynamic account) =>
       makeAccountCurrenciesRequest(account).request();
@@ -288,9 +295,8 @@ abstract class Remote extends Object with Events {
           makePathFindRequest(sourceAccount, destinationAccount, amount, paths: paths, bridges: bridges));
 
   /**
-   * Do a one-time search for payment paths, it is not guaranteed that the best path will be provided.
-   *
-   * Use [findPaths] instead if you want an updating stream with the best payment path found.
+   * This request will initiate a stream of responses with found paths. It is advised to use either
+   * [requestRipplePathFind] to do a one-time search or use [findPaths] to handle the response stream.
    */
   Future<Response> requestPathFind(AccountID sourceAccount, AccountID destinationAccount, Amount amount,
                               {PathSet paths, List<AccountID> bridges}) =>
@@ -324,6 +330,11 @@ abstract class Remote extends Object with Events {
     return req;
   }
 
+  /**
+   * Do a one-time search for payment paths, it is not guaranteed that the best path will be provided.
+   *
+   * Use [findPaths] instead if you want an updating stream with the best payment path found.
+   */
   Future<Response> requestRipplePathFind(AccountID sourceAccount, AccountID destinationAccount, Amount amount,
                                          {List<Issue> currencies, LedgerSelector ledger}) =>
       makeRipplePathFindRequest(sourceAccount, destinationAccount, amount, currencies, ledger: ledger).request();
@@ -345,29 +356,43 @@ abstract class Remote extends Object with Events {
     return req;
   }
 
-  Future<Response> requestSign(Transaction transaction, Secret secret, {bool offline}) =>
-      makeSignRequest(transaction, secret, offline: offline).request();
+  Future<Response> requestSign(Transaction transaction, KeyPair key, {bool offline}) =>
+      makeSignRequest(transaction, key, offline: offline).request();
 
-  Request makeSignRequest(Transaction transaction, Secret secret, {bool offline}) {
+  Request makeSignRequest(Transaction transaction, KeyPair key, {bool offline}) {
+    if(!isTrusted)
+      throw new UnsupportedError("This method is not supported on untrusted remotes!");
     Request req = newRequest(Command.SIGN);
     req.tx_json = transaction;
-    req.secret = secret;
+    req.secret = key.encodedPrivateKey;
     if(offline != null)
       req.offline = offline;
     return req;
   }
 
-  Future<Response> requestSubmit(Transaction transaction, Secret secret, {bool offline, bool failHard}) =>
-      makeSubmitRequest(transaction, secret, offline: offline, failHard: failHard).request();
+  Future<Response> requestSubmit(Transaction transaction, KeyPair key, {bool offline, bool failHard}) =>
+      makeSubmitRequest(transaction: transaction, key: key, offline: offline, failHard: failHard).request();
 
-  Request makeSubmitRequest(Transaction transaction, Secret secret, {bool offline, bool failHard}) {
+  Future<Response> requestSubmitRaw(Uint8List signedTransaction) =>
+      makeSubmitRequest(rawTx: signedTransaction).request();
+
+  /**
+   * If [rawTx] is given, the others are ignored.
+   */
+  Request makeSubmitRequest({Uint8List rawTx, Transaction transaction, KeyPair key, bool offline, bool failHard}) {
     Request req = newRequest(Command.SUBMIT);
-    req.tx_json = transaction;
-    req.secret = secret;
-    if(offline != null)
-      req.offline = offline;
-    if(failHard != null)
-      req.fail_hard = failHard;
+    if(rawTx != null) {
+      req.tx_blob = rawTx;
+    } else {
+      if(!isTrusted)
+        throw new UnsupportedError("This method is not supported on untrusted remotes!");
+      req.tx_json = transaction;
+      req.secret = key.encodedPrivateKey;
+      if(offline != null)
+        req.offline = offline;
+      if(failHard != null)
+        req.fail_hard = failHard;
+    }
     return req;
   }
 

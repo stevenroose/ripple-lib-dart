@@ -145,7 +145,7 @@ class EngineResult extends Enum implements RippleSerializable {
   }
 
   @override
-  void toByteSink(ByteSink sink) => sink.add(code);
+  void toByteSink(Sink sink) => sink.add(code);
 
   @override
   Uint8List toBytes() => new Uint8List(1)..[0] = code;

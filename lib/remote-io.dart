@@ -16,7 +16,7 @@ class ServerRemote extends Remote {
   final String _uri;
   WebSocket _ws;
 
-  ServerRemote(String this._uri) : super();
+  ServerRemote(String this._uri, [bool trusted = false]) : super(trusted);
 
   String get uri => _uri;
 

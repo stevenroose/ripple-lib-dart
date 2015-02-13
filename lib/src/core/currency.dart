@@ -42,10 +42,13 @@ class Currency extends Hash160 implements RippleSerializable {
     bytes[0] = isoCode.codeUnitAt(0) & 0xFF;
     bytes[1] = isoCode.codeUnitAt(1) & 0xFF;
     bytes[2] = isoCode.codeUnitAt(2) & 0xFF;
-    bytes[4] = (interestStart.millisecondsSinceEpoch << 24) & 0xFF;
-    bytes[5] = (interestStart.millisecondsSinceEpoch << 16) & 0xFF;
-    bytes[6] = (interestStart.millisecondsSinceEpoch << 8) & 0xFF;
-    bytes[7] = (interestStart.millisecondsSinceEpoch) & 0xFF;
+//    int seconds = RippleDateTime.calculateSecondsSinceRippleEpoch(interestStart);
+//    bytes[4] = (seconds << 24) & 0xFF;
+//    bytes[5] = (seconds << 16) & 0xFF;
+//    bytes[6] = (seconds << 8) & 0xFF;
+//    bytes[7] = (seconds) & 0xFF;
+    // ^ deprecated format
+    bytes[4] = bytes[5] = bytes[6] = bytes[7] = 0;
     bytes.setRange(8, 16, new Float64List.fromList([interestRate]).buffer.asUint8List());
     return new Currency(bytes);
   }
@@ -94,7 +97,7 @@ class Currency extends Hash160 implements RippleSerializable {
   /* RIPPLE SERIALIZATION */
 
   @override
-  void toByteSink(ByteSink sink) => sink.add(bytes);
+  void toByteSink(Sink sink) => sink.add(bytes);
 
   @override
   Uint8List toBytes() => bytes;

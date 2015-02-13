@@ -7,7 +7,14 @@ class PathSet implements List<Path>, RippleSerialization {
 
   List<Path> _paths;
 
-  PathSet(Iterable<Path> paths) : _paths = paths is List ? paths : new List.from(paths);
+  factory PathSet(Iterable<Path> paths) {
+    if(paths is List)
+      return new PathSet._internal(paths);
+    else
+      return new PathSet._internal(new List.from(paths));
+  }
+
+  PathSet._internal(List<Path> this._paths);
 
   PathSet.fromJson(dynamic json) {
     Iterable pathList = json as Iterable;
@@ -18,7 +25,7 @@ class PathSet implements List<Path>, RippleSerialization {
   toJson() => _paths;
 
   @override
-  void toByteSink(ByteSink sink) {
+  void toByteSink(Sink sink) {
     int n = 0;
     for(Path path in _paths) {
       if(n++ != 0)

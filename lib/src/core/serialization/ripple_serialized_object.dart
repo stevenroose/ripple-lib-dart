@@ -1,26 +1,29 @@
 part of ripplelib.core;
 
+
 abstract class RippleSerializedObject extends RippleSerialization {
 
   RippleSerializedObject() {
 
   }
 
-  RippleSerializedObject._fromJson(dynamic json) {
+  RippleSerializedObject._fromJson(dynamic json, [bool skipFieldCheck = false]) {
     if(json is! Map)
       throw new ArgumentError("Must be a JSON object");
-    (json as Map).forEach((String key, dynamic value) {
+    json.forEach((String key, dynamic value) {
       Field field = Field.fromJsonKey(key);
       _put(field, value);
     });
-    _checkRequiredFields();
+    if(!skipFieldCheck)
+      _checkRequiredFields();
   }
 
-  @override
-  void toByteSink(ByteSink sink) {
+  void fieldsToByteSink(Sink sink, [bool fieldFilter(Field)]) {
+    if(fieldFilter == null)
+      fieldFilter = (Field f) => f.isSerialized;
     Map<Field, FieldRequirement> format = _rippleFormat;
     Set<Field> fields = new Set.from(format.keys); // we will remove covered fields
-    _fields.keys.where((Field f) => f.isSerialized).forEach((Field f) {
+    _fields.keys.where(fieldFilter).forEach((Field f) {
       // check if this field is valid for
       if(format[f] == FieldRequirement.INVALID)
         throw new FormatException("Invalid field formatting: field $f is invalid for this object.");
@@ -36,6 +39,9 @@ abstract class RippleSerializedObject extends RippleSerialization {
         throw new FormatException("Required field is missing: $f");
     });
   }
+
+  @override
+  void toByteSink(Sink sink) => fieldsToByteSink(sink);
 
   @override
   dynamic toJson() {
