@@ -1,4 +1,4 @@
-part of ripplelib.remote;
+part of ripplelib.client;
 
 class TransactionResult<T extends Transaction> extends RippleJsonObject implements Comparable<TransactionResult> {
 

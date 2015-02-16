@@ -1,4 +1,4 @@
-library ripplelib.remote.io;
+library ripplelib.client.io;
 
 import "dart:async";
 import "dart:io";
@@ -6,23 +6,23 @@ import "dart:io";
 import "package:logging/logging.dart";
 
 import "json.dart";
-import "remote.dart";
-export "remote.dart";
+import 'client.dart';
+export 'client.dart';
 
-class ServerRemote extends Remote {
+class RemoteImpl extends Remote {
 
   static void _log(String message, [Level level = Level.INFO]) => Remote.log.log(level, message);
 
   final String _uri;
   WebSocket _ws;
 
-  ServerRemote(String this._uri, [bool trusted = false]) : super(trusted);
+  RemoteImpl(String this._uri, [bool trusted = false]) : super(trusted);
 
-  String get uri => _uri;
+  Uri get uri => Uri.parse(_uri);
 
   @override
   Future<Remote> connect() {
-    WebSocket.connect(_uri).then((socket) {
+    return WebSocket.connect(_uri).then((socket) {
       _log("Connected to websocket at $_uri");
       socket.listen((message) {
         _log("Message received: $message", Level.FINER);
@@ -30,8 +30,8 @@ class ServerRemote extends Remote {
       });
       _ws = socket;
       emit(Remote.OnConnected, this);
+      return this;
     });
-    return once(Remote.OnConnected);
   }
 
   @override

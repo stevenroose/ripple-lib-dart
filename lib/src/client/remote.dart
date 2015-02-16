@@ -1,4 +1,4 @@
-part of ripplelib.remote;
+part of ripplelib.client;
 
 /**
  *
@@ -13,7 +13,8 @@ abstract class Remote extends Object with Events {
   static final EventType OnMessage              = new EventType<JsonObject>();
   static final EventType OnErrorMessage         = new EventType<JsonObject>();
   static final EventType OnSendMessage          = new EventType<JsonObject>();
-  static final EventType OnLedgerClosed         = new EventType(); //TODO
+  static final EventType OnServerUpdate         = new EventType<ServerInfo>();
+  static final EventType OnLedgerClosed         = new EventType<ServerInfo>();
   static final EventType OnPathFindStatus       = new EventType<JsonObject>();
   static final EventType OnProposedTransaction  = new EventType<TransactionResult>();
   static final EventType OnValidatedTransaction = new EventType<TransactionResult>();
@@ -23,7 +24,8 @@ abstract class Remote extends Object with Events {
   Stream<JsonObject>        get onMessage              => on(OnMessage);
   Stream<JsonObject>        get onErrorMessage         => on(OnErrorMessage);
   Stream<JsonObject>        get onSendMessage          => on(OnSendMessage);
-  Stream<Object>            get onLedgerClosed         => on(OnLedgerClosed); //TODO
+  Stream<ServerInfo>        get onServerUpdate         => on(OnServerUpdate);
+  Stream<ServerInfo>        get onLedgerClosed         => on(OnLedgerClosed);
   Stream<JsonObject>        get onPathFindStatus       => on(OnPathFindStatus);
   Stream<TransactionResult> get onProposedTransaction  => on(OnProposedTransaction);
   Stream<TransactionResult> get onValidatedTransaction => on(OnValidatedTransaction);
@@ -36,7 +38,13 @@ abstract class Remote extends Object with Events {
     _subscriptionManager = new SubscriptionManager._(this);
   }
 
-  String get uri;
+  Uri get uri;
+
+  /**
+   * Calculated fees are multiplied with this value to incorporate an increase in base fee.
+   * F.e. when the load increases and we did not yet receive a server status update.
+   */
+  double feeCushion = 1.2;
 
   bool _trusted;
   bool get isTrusted => _trusted;
@@ -47,16 +55,25 @@ abstract class Remote extends Object with Events {
   SubscriptionManager get subscriptions => _subscriptionManager;
   SubscriptionManager _subscriptionManager;
 
+  ServerInfo _info;
+  ServerInfo get info => _info;
+
   /* ABSTRACT METHODS */
 
   Future<Remote> connect();
     void disconnect();
   bool get isConnected;
 
+  void _initServerInfoOnConnect() {
+    once(OnConnected).then((Remote remote) {
+      remote.requestServerInfo();
+    });
+  }
+
   Future<Response> request(Request request) {
     _pendingRequests[request.id] = request;
     sendMessage(request);
-    return request.onResponse.first;
+    return request.onResponse;
   }
 
   /**
@@ -77,9 +94,8 @@ abstract class Remote extends Object with Events {
         _updateServerInfo(message);
         break;
       case MessageType.LEDGER_CLOSED:
-        emit(OnLedgerClosed, null);
         _updateServerInfo(message);
-        //TODO
+        emit(OnLedgerClosed, _info);
         break;
       case MessageType.RESPONSE:
         _handleResponse(message);
@@ -92,7 +108,7 @@ abstract class Remote extends Object with Events {
         break;
       case MessageType.ERROR:
         emit(OnErrorMessage, message);
-        handleError(message);
+        _handleError(message);
         break;
       default:
         log.warning("Unhandled message: $message");
@@ -126,13 +142,40 @@ abstract class Remote extends Object with Events {
       emit(OnProposedTransaction, tx);
   }
 
-  void handleError(JsonObject message) {
+  void _handleError(JsonObject message) {
     log.warning("Received error: $message");
   }
 
   void _updateServerInfo(JsonObject message) {
-    //TODO
+    if(_info == null) {
+      _info = new ServerInfo._(this);
+      if(message.type != MessageType.RESPONSE || !message.result.containsKey("info")) {
+        log.warning("First ServerInfo update should be from a requestServerInfo message. Instead: $message");
+      }
+    }
+    if(message.type == MessageType.RESPONSE && message.result.containsKey("info")) {
+      _info._updateFromServerInfo(message.result.info);
+    } else if(message.type == MessageType.LEDGER_CLOSED) {
+      _info._updateFromLedgerClosed(message);
+    } else if(message.type == MessageType.SERVER_STATUS) {
+      _info._updateFromServerStatus(message);
+    } else {
+      log.warning("Unrecognised ServerInfo update: $message");
+      return;
+    }
+    emit(OnServerUpdate, _info);
   }
+
+  Future<ServerInfo> ensureUpdatedServerInfo() {
+    if(subscriptions.streams.contains(SubscriptionStream.SERVER) ||
+       subscriptions.streams.contains(SubscriptionStream.LEDGER)) {
+      return new Future.value(_info);
+    } else {
+      return requestServerInfo().then((_) => _info);
+    }
+  }
+
+  Amount computeTxFee(Transaction tx) => info.computeTxFee(tx);
 
   Request newRequest(Command cmd) => new Request(this, cmd, _requestID++);
 
@@ -437,7 +480,10 @@ abstract class Remote extends Object with Events {
 
   /* ADMIN REQUESTS (NOT COMPLETE) */
 
-  Future<Response> requestServerInfo() => makeServerInfoRequest().request();
+  Future<Response> requestServerInfo() => makeServerInfoRequest().request().then((response) {
+    _updateServerInfo(response);
+    return response;
+  });
 
   Request makeServerInfoRequest() {
     Request req = newRequest(Command.SERVER_INFO);

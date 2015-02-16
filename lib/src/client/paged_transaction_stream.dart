@@ -1,4 +1,4 @@
-part of ripplelib.remote;
+part of ripplelib.client;
 
 @proxy
 class _PagedTransactionStream implements Stream<TransactionPage> {

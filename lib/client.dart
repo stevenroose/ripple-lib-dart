@@ -1,4 +1,4 @@
-library ripplelib.remote;
+library ripplelib.client;
 
 
 import "dart:async";
@@ -22,18 +22,18 @@ export "core.dart";
 import "json.dart";
 
 
-part "src/remote/account.dart";
-part "src/remote/ledger_info.dart";
-part "src/remote/order_book.dart";
-part "src/remote/paged_transaction_stream.dart";
-part "src/remote/path_find_stream.dart";
-part "src/remote/payment_process.dart";
-part "src/remote/remote.dart";
-part "src/remote/request.dart";
-part "src/remote/response.dart";
-part "src/remote/server_info.dart";
-part "src/remote/subscription_manager.dart";
-part "src/remote/transaction_result.dart";
+part "src/client/account.dart";
+part "src/client/ledger_info.dart";
+part "src/client/order_book.dart";
+part "src/client/paged_transaction_stream.dart";
+part "src/client/path_find_stream.dart";
+part "src/client/payment_process.dart";
+part "src/client/remote.dart";
+part "src/client/request.dart";
+part "src/client/response.dart";
+part "src/client/server_info.dart";
+part "src/client/subscription_manager.dart";
+part "src/client/transaction_result.dart";
 
-part "src/remote/enums/command.dart";
-part "src/remote/enums/message_type.dart";
+part "src/client/enums/command.dart";
+part "src/client/enums/message_type.dart";

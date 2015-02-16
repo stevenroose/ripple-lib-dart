@@ -81,6 +81,16 @@ abstract class Transaction extends RippleSerializedObject {
     this.signature = key.sign(signingHash);
   }
 
+
+  /* CALCULATE FEE */
+
+  int get feeUnits {
+    // taken from ripple-lib
+    return 10;
+  }
+
+  /* JSON */
+
   Transaction._fromJson(dynamic json) : super._fromJson(json);
 
   factory Transaction.fromJson(dynamic json) {

@@ -1,4 +1,4 @@
-part of ripplelib.remote;
+part of ripplelib.client;
 
 class Command extends Enum {
   static const Command ACCOUNT_CURRENCIES = const Command._("account_currencies");

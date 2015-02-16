@@ -1,4 +1,4 @@
-part of ripplelib.remote;
+part of ripplelib.client;
 
 
 class LedgerInfo {
@@ -16,7 +16,7 @@ class LedgerInfo {
                      new DateTime.now().subtract(new Duration(seconds: json["age"])),
                      json["txn_count"]);
 
-factory LedgerInfo._fromLedgerUpdateJson(JsonObject json) =>
+factory LedgerInfo._fromLedgerClosedJson(JsonObject json) =>
      new LedgerInfo(json["hash"],
                     json["ledger_index"],
                     json["ledger_time"],

@@ -1,7 +1,9 @@
-part of ripplelib.remote;
+part of ripplelib.client;
 
 
 class ServerInfo {
+
+  Remote _remote;
 
   String _buildVersion;
   String _completeLedgers;
@@ -15,29 +17,48 @@ class ServerInfo {
 
   LedgerInfo _latestLedger;
 
-  int _feeBase;
-  int _feeRef;
-  int _reserveBase;
-  int _reserveInc;
+  Amount _baseFee;
+  int _refFee;
+  Amount _baseReserve;
+  Amount _incReserve;
 
-  ServerInfo._();
+  ServerInfo._(this._remote);
 
   String get buildVersion => _buildVersion;
   String get completeLedgers => _completeLedgers;
   String get hostId => _hostId;
   int get ioLatency => _ioLatency;
   Map get lastClose => _lastClose;
+
+  /* LOAD */
   int get loadFactor => _loadFactor;
+  int get loadBase => 256;
+
   int get peers => _peers;
   Uint8List get pubKey => _pubKey;
   ServerState get serverState => _serverState;
 
   LedgerInfo get latestLedger => _latestLedger;
 
-  int get feeBase => _feeBase;
-  int get feeRef => _feeRef;
-  int get reserveBase => _reserveBase;
-  int get reserveInc => _reserveInc;
+  Amount get baseFee => _baseFee;
+  int get refFee => _refFee;
+  Amount get baseReserve => _baseReserve;
+  Amount get incReserve => _incReserve;
+
+  /* FEE CALCULATION */
+
+  double get _feeUnitDrops {
+    double fee = 1.0;
+    fee *= baseFee.xrpDrops.intValue() / refFee;
+    fee *= loadFactor / loadBase;
+    fee *= _remote.feeCushion;
+    return fee;
+  }
+
+  Amount computeTxFee(Transaction tx) {
+    var fee = _feeUnitDrops * tx.feeUnits;
+    return new Amount.drops(fee.ceil());
+  }
 
   void _updateFromServerInfo(JsonObject json) {
     _buildVersion = _or(json["build_version"], _buildVersion);
@@ -49,6 +70,23 @@ class ServerInfo {
     _peers = _or(json["peers"], _peers);
     _pubKey = _or(json["pubkey_node"], _pubKey);
     _serverState = _or(json["server_state"], _serverState);
+    _latestLedger = new LedgerInfo._fromServerInfoJson(json["validated_ledger"]);
+    _baseFee = new Amount.XRP(json["base_fee_xrp"]);
+    _baseReserve = new Amount.XRP(json["reserve_base_xrp"]);
+    _incReserve = new Amount.XRP(json["reserve_inc_xrp"]);
+  }
+
+  void _updateFromServerStatus(JsonObject json) {
+    //TODO !
+  }
+
+  void _updateFromLedgerClosed(JsonObject json) {
+    _latestLedger = new LedgerInfo._fromLedgerClosedJson(json);
+    _baseFee = new Amount.drops(json["fee_base"]);
+    _refFee = json["fee_ref"];
+    _baseReserve = new Amount.drops(json["reserve_base"]);
+    _incReserve = new Amount.drops(json["reserve_inc"]);
+    _completeLedgers = _or(json["validated_ledgers"], _completeLedgers);
   }
 
   _or(value, ifNull) => value != null ? value : ifNull;

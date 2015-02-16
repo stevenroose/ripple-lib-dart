@@ -1,4 +1,4 @@
-part of ripplelib.remote;
+part of ripplelib.client;
 
 class MessageType extends Enum {
   static const MessageType LEDGER_CLOSED = const MessageType._("ledgerClosed");

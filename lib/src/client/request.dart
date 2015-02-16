@@ -1,24 +1,20 @@
-part of ripplelib.remote;
+part of ripplelib.client;
 
 
-class Request extends RippleJsonObject with Events {
-
-  static final EventType OnResponse = new EventType<Response>();
-  static final EventType OnSuccess  = new EventType<Response>();
-  static final EventType OnError    = new EventType<Response>();
-
-  Stream<Response> get onResponse => on(OnResponse);
-  Stream<Response> get onSuccess  => on(OnSuccess);
-  Stream<Response> get onError    => on(OnError);
+class Request extends RippleJsonObject {
 
   final Remote remote;
   final Command command;
   final int id;
   Response response;
 
+  Completer _completer;
+  Future<Response> get onResponse => _completer.future;
+
   Request(Remote this.remote, Command this.command, int this.id) {
     this["command"] = command.jsonValue;
     this["id"] = id;
+    _completer = new Completer();
   }
 
   /**
@@ -41,8 +37,10 @@ class Request extends RippleJsonObject with Events {
 
   void _handleResponse(JsonObject message) {
     response = new Response(this, message);
-    emit(OnResponse, response);
-    emit(response.successful ? OnSuccess : OnError, response);
+    if(response.successful)
+      _completer.complete(response);
+    else
+      _completer.completeError(response);
   }
 
 }

@@ -22,19 +22,21 @@ class Amount extends RippleSerialization implements Comparable<Amount> {
   final Decimal value;
   final Currency currency;
   final AccountID issuer;
+  final bool _unchecked;
 
   static final Decimal _ZERO_DECIMAL = new Decimal.fromInt(0);
 
-  Amount._(Decimal this.value, Currency this.currency, AccountID this.issuer, [bool unchecked = true]) {
-    if(!unchecked) {
+  Amount._(Decimal this.value, Currency this.currency, AccountID this.issuer, [bool this._unchecked = true]) {
+    if(!_unchecked) {
       if(isNative) {
         if(value.abs() > MAX_NATIVE_VALUE)
           throw new StateError("Amount too big: $value");
         if(value.scale > MAXIMUM_NATIVE_SCALE)
           throw new StateError("Amount has scale higher that allowed: $value");
       } else {
-        if (value.precision > MAXIMUM_IOU_PRECISION)
+        if (value.precision > MAXIMUM_IOU_PRECISION) {
           throw new StateError("Too large precision for IOU: $value");
+        }
       }
     }
   }
@@ -106,13 +108,13 @@ class Amount extends RippleSerialization implements Comparable<Amount> {
 
   Decimal _castOther(dynamic other) => other is Amount ? other.value : _convertDecimalAmount(other);
 
-  Amount operator +(dynamic other) => new Amount._(value + _castOther(other), currency, issuer);
+  Amount operator +(dynamic other) => new Amount._(value + _castOther(other), currency, issuer, _unchecked);
 
-  Amount operator -(dynamic other) => new Amount._(value - _castOther(other), currency, issuer);
+  Amount operator -(dynamic other) => new Amount._(value - _castOther(other), currency, issuer, _unchecked);
 
-  Amount operator *(dynamic other) => new Amount._(value * _castOther(other), currency, issuer);
+  Amount operator *(dynamic other) => new Amount._(value * _castOther(other), currency, issuer, _unchecked);
 
-  Amount operator /(dynamic other) => new Amount._(value / _castOther(other), currency, issuer);
+  Amount operator /(dynamic other) => new Amount._(value / _castOther(other), currency, issuer, _unchecked);
 
   Amount operator -() => new Amount._(-value, currency, issuer);
 

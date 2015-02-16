@@ -1,4 +1,4 @@
-part of ripplelib.remote;
+part of ripplelib.client;
 
 
 /**
@@ -197,9 +197,10 @@ class Account extends Object with Events {
     } else {
       throw new StateError("Cannot make transactions without private key");
     }
-    return update().then((_) {
+    return _remote.ensureUpdatedServerInfo().then((info) {
       tx.account = id;
       tx.sequence = _root.sequence + 1;
+      tx.fee = _remote.computeTxFee(tx);
       tx.sign(useKey);
       log.fine("Submitting transaction for $id: $tx");
       return _remote.requestSubmitRaw(tx.toBytes());

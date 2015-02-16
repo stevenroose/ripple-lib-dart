@@ -1,4 +1,4 @@
-part of ripplelib.remote;
+part of ripplelib.client;
 
 
 class PaymentProcess implements Stream<PaymentOption> {
