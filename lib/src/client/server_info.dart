@@ -10,6 +10,7 @@ class ServerInfo {
   String _hostId;
   int _ioLatency;
   Map _lastClose;
+  int _loadBase = 256;
   int _loadFactor;
   int _peers;
   Uint8List _pubKey;
@@ -32,7 +33,7 @@ class ServerInfo {
 
   /* LOAD */
   int get loadFactor => _loadFactor;
-  int get loadBase => 256;
+  int get loadBase => _loadBase;
 
   int get peers => _peers;
   Uint8List get pubKey => _pubKey;
@@ -60,6 +61,8 @@ class ServerInfo {
     return new Amount.drops(fee.ceil());
   }
 
+  /* UPDATE */
+
   void _updateFromServerInfo(JsonObject json) {
     _buildVersion = _or(json["build_version"], _buildVersion);
     _completeLedgers = _or(json["complete_ledgers"], _completeLedgers);
@@ -77,7 +80,9 @@ class ServerInfo {
   }
 
   void _updateFromServerStatus(JsonObject json) {
-    //TODO !
+    _loadBase = _or(json["load_base"], _loadBase);
+    _loadFactor = _or(json["load_factor"], _loadFactor);
+    _serverState = _or(ServerState.fromJsonValue(json["server_status"]), _serverState);
   }
 
   void _updateFromLedgerClosed(JsonObject json) {
