@@ -1,4 +1,4 @@
-library ripplelib.client;
+library ripplelib.remote;
 
 
 import "dart:async";
@@ -16,6 +16,7 @@ import "package:events/events.dart";
 import "package:json_object/json_object.dart";
 import "package:logging/logging.dart";
 import "package:stevenroose/lru_map.dart";
+import "package:websockets/websockets.dart";
 
 import "core.dart";
 export "core.dart";

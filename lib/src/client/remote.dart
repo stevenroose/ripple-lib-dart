@@ -1,15 +1,13 @@
-part of ripplelib.client;
+part of ripplelib.remote;
 
 /**
  *
  *
  */
-abstract class Remote extends Object with Events {
+class Remote extends Object with Events {
 
-  static final Logger log = new Logger("ripplelib.remote");
+  static final Logger logger = new Logger("ripplelib.remote");
 
-  static final EventType OnConnected            = new EventType<Remote>();
-  static final EventType OnDisconnected         = new EventType<Remote>();
   static final EventType OnMessage              = new EventType<JsonObject>();
   static final EventType OnErrorMessage         = new EventType<JsonObject>();
   static final EventType OnSendMessage          = new EventType<JsonObject>();
@@ -19,8 +17,6 @@ abstract class Remote extends Object with Events {
   static final EventType OnProposedTransaction  = new EventType<TransactionResult>();
   static final EventType OnValidatedTransaction = new EventType<TransactionResult>();
 
-  Stream<Remote>            get onConnected            => on(OnConnected);
-  Stream<Remote>            get onDisconnected         => on(OnDisconnected);
   Stream<JsonObject>        get onMessage              => on(OnMessage);
   Stream<JsonObject>        get onErrorMessage         => on(OnErrorMessage);
   Stream<JsonObject>        get onSendMessage          => on(OnSendMessage);
@@ -31,14 +27,32 @@ abstract class Remote extends Object with Events {
   Stream<TransactionResult> get onValidatedTransaction => on(OnValidatedTransaction);
 
 
+  WebSocket _ws;
+
   int _requestID = 0;
   LRUMap<int, Request> _pendingRequests = new LRUMap<int, Request>(capacity: 50);
 
-  Remote(bool this._trusted) {
-    _subscriptionManager = new SubscriptionManager._(this);
+
+  static Future<Remote> connect(dynamic url, {bool isTrusted: false}) async {
+    WebSocket ws = await WebSocket.connect(url);
+    logger.info("Connected to websocket at $url");
+    return new Remote.withExistingWebSocket(ws, isTrusted: isTrusted);
   }
 
-  Uri get uri;
+  Remote.withExistingWebSocket(WebSocket this._ws, {bool isTrusted: false}) {
+    // initialisers
+    _trusted = isTrusted;
+    _subscriptionManager = new SubscriptionManager._(this);
+    // listen on socket
+    _ws.listen((m) => logger.finer("Message received: $m"), onError: (m) {
+      // something wrong with the stream
+      logger.warning("Error with WebSocket: $m");
+    });
+    // make initial server info request
+    requestServerInfo();
+  }
+
+  Uri get url => _ws.url;
 
   /**
    * Calculated fees are multiplied with this value to incorporate an increase in base fee.
@@ -50,25 +64,13 @@ abstract class Remote extends Object with Events {
   bool get isTrusted => _trusted;
 
   @override
-  String toString() => "Ripple remote on $uri";
+  String toString() => "Ripple remote on $url";
 
   SubscriptionManager get subscriptions => _subscriptionManager;
   SubscriptionManager _subscriptionManager;
 
   ServerInfo _info;
   ServerInfo get info => _info;
-
-  /* ABSTRACT METHODS */
-
-  Future<Remote> connect();
-    void disconnect();
-  bool get isConnected;
-
-  void _initServerInfoOnConnect() {
-    once(OnConnected).then((Remote remote) {
-      remote.requestServerInfo();
-    });
-  }
 
   Future<Response> request(Request request) {
     _pendingRequests[request.id] = request;
@@ -81,7 +83,18 @@ abstract class Remote extends Object with Events {
    *
    * Accepts both raw Strings and JSON-serializable objects.
    */
-  void sendMessage(dynamic message);
+  void sendMessage(dynamic/*String|RippleJsonMessage|RippleSerializable*/ message) {
+    String messageString;
+    if(message is String) {
+      messageString = message;
+      message = const RippleJsonCodec().decode(messageString);
+    } else {
+      messageString = const RippleJsonCodec().encode(message);
+    }
+    this.emit(Remote.OnSendMessage, message);
+    _ws.add(messageString);
+    logger.finer("Message sent: $messageString");
+  }
 
   /* message handling */
 
@@ -111,7 +124,7 @@ abstract class Remote extends Object with Events {
         _handleError(message);
         break;
       default:
-        log.warning("Unhandled message: $message");
+        logger.warning("Unhandled message: $message");
         break;
     }
   }
@@ -121,7 +134,7 @@ abstract class Remote extends Object with Events {
     if(request != null) {
       request._handleResponse(message);
     } else {
-      log.warning("Received response to unrecognized request: $message");
+      logger.warning("Received response to unrecognized request: $message");
     }
   }
 
@@ -143,14 +156,14 @@ abstract class Remote extends Object with Events {
   }
 
   void _handleError(JsonObject message) {
-    log.warning("Received error: $message");
+    logger.warning("Received error: $message");
   }
 
   void _updateServerInfo(JsonObject message) {
     if(_info == null) {
       _info = new ServerInfo._(this);
       if(message.type != MessageType.RESPONSE || !message.result.containsKey("info")) {
-        log.warning("First ServerInfo update should be from a requestServerInfo message. Instead: $message");
+        logger.warning("First ServerInfo update should be from a requestServerInfo message. Instead: $message");
       }
     }
     if(message.type == MessageType.RESPONSE && message.result.containsKey("info")) {
@@ -160,7 +173,7 @@ abstract class Remote extends Object with Events {
     } else if(message.type == MessageType.SERVER_STATUS) {
       _info._updateFromServerStatus(message);
     } else {
-      log.warning("Unrecognised ServerInfo update: $message");
+      logger.warning("Unrecognised ServerInfo update: $message");
       return;
     }
     emit(OnServerUpdate, _info);
