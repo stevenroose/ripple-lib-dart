@@ -11,7 +11,8 @@ class SetRegularKey extends Transaction {
   AccountID get regularKey => _get(Field.RegularKey);
   set regularKey(AccountID regularKey) => _put(Field.RegularKey, regularKey);
 
-  SetRegularKey.fromJson(dynamic json) : super._fromJson(json) {
+  SetRegularKey.fromJson(dynamic json, [bool skipFieldCheck = RippleSerializedObject._DEFAULT_SKIP_FIELDCHECK]) :
+      super._fromJson(json, skipFieldCheck) {
     _assertTransactionType(TransactionType.SET_REGULAR_KEY);
   }
 

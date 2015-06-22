@@ -18,11 +18,11 @@ abstract class LedgerEntry extends RippleSerializedObject {
   factory LedgerEntry._newInstanceOf(LedgerEntryType type) {
     switch(type) {
       case LedgerEntryType.ACCOUNT_ROOT:
-        return new AccountRoot._newInstance();
+        return new AccountRootEntry._newInstance();
       case LedgerEntryType.OFFER:
-        return new Offer._newInstance();
+        return new OfferEntry._newInstance();
       case LedgerEntryType.RIPPLE_STATE:
-        return new RippleState._newInstance();
+        return new RippleStateEntry._newInstance();
       //TODO complete
     }
     throw new ArgumentError("Invalid or unsupported ledger entry type: $type");
@@ -50,7 +50,7 @@ abstract class LedgerEntry extends RippleSerializedObject {
     return owners;
   }
 
-  LedgerEntry._fromJson(dynamic json) : super._fromJson(json);
+  LedgerEntry._fromJson(dynamic json, [bool skipFieldCheck = false]) : super._fromJson(json, skipFieldCheck);
 
   void _assertLedgerEntryType(LedgerEntryType assertedType) {
     if(this.type != assertedType)

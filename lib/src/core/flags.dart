@@ -17,7 +17,7 @@ class Flags {
 
   @override
   int get hashCode => _hashCodeXor ^ value.hashCode;
-  static final int _hashCodeXor = "Flag".hashCode;
+  static final int _hashCodeXor = "Flags".hashCode;
 
   Flags or(Flags other) =>
       new Flags._internal(value | (other.value & 0xff));
@@ -27,6 +27,8 @@ class Flags {
   Flags operator ~() => not();
 
   bool has(Flags flag) => this == this.or(flag);
+
+  dynamic toJson() => value;
 }
 
 

@@ -1,7 +1,7 @@
 part of ripplelib.core;
 
 
-class AccountRoot extends LedgerEntry {
+class AccountRootEntry extends LedgerEntry {
 
   @override
   Map<Field, FieldRequirement> get _rippleFormat => _rippleFormatMap;
@@ -22,9 +22,9 @@ class AccountRoot extends LedgerEntry {
   }..addAll(LedgerEntry._rippleFormatMap);
 
 
-  AccountRoot() : super(LedgerEntryType.ACCOUNT_ROOT);
+  AccountRootEntry() : super(LedgerEntryType.ACCOUNT_ROOT);
 
-  AccountRoot._newInstance() : this();
+  AccountRootEntry._newInstance() : this();
 
 
   AccountID get account => _get(Field.Account);
@@ -58,7 +58,8 @@ class AccountRoot extends LedgerEntry {
 
   /* JSON */
 
-  AccountRoot.fromJson(dynamic json) : super._fromJson(json) {
+  AccountRootEntry.fromJson(dynamic json, [bool skipFieldCheck = RippleSerializedObject._DEFAULT_SKIP_FIELDCHECK]) :
+      super._fromJson(json, skipFieldCheck) {
     _assertLedgerEntryType(LedgerEntryType.ACCOUNT_ROOT);
   }
 

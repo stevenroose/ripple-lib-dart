@@ -6,12 +6,15 @@
  */
 library ripplelib.test.remote.requests;
 
-import "package:unittest/unittest.dart";
+import "package:test/test.dart";
 
 import "package:ripplelib/json.dart";
-import "package:ripplelib/remote-io.dart";
+import "package:ripplelib/remote.dart";
+import "dart:async";
 import "dart:convert";
 import "package:cryptoutils/cryptoutils.dart";
+
+import "package:logging/logging.dart";
 
 
 AccountID me = new AccountID("rK1w3Zcd6eiEJ2N29gipexpXQuR7gPDLQg");
@@ -24,12 +27,13 @@ void prettyPrint(dynamic json) {
   print(prettyPrinter.convert(json));
 }
 
-void main() {
+Future main() async {
+  Remote remote = await Remote.connect("ws://s1.ripple.com:443/");
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen(print);
+  remote.onErrorMessage.listen(Logger.root.warning);
+
   group("ripplelib.test.remote.requests", () {
-    Remote remote = new ServerRemote("ws://s1.ripple.com:443/");
-    setUp(() {
-      return remote.connect();
-    });
     test("requestAccountCurrencies", () {
       expect(remote.requestAccountCurrencies(me).then((response) {
         expect(response.result.receive_currencies, contains(myBTC.currency));
@@ -38,8 +42,8 @@ void main() {
     });
     test("requestAccountInfo", () {
       expect(remote.requestAccountInfo(me).then((response) {
-        expect(response.result.account_data, new isInstanceOf<AccountRoot>());
-        AccountRoot root = response.result.account_data as AccountRoot;
+        expect(response.result.account_data, new isInstanceOf<AccountRootEntry>());
+        AccountRootEntry root = response.result.account_data as AccountRootEntry;
         expect(root.balance > 100, isTrue);
         expect(root.previousTxId.bytes.length, equals(32));
         expect(root.account, equals(me));
@@ -60,7 +64,8 @@ void main() {
       expect(remote.requestAccountTransactions(me, minLedgerIndex: -1).then((response) {
         //      print(response.result);
         var hashes = response.result.transactions.map((tx) => tx.tx.hash);
-        expect(hashes, contains(testTxHash));
+        expect(hashes, contains(testTxHash),
+            reason: "This error can be history-related. Update the test information.");
       }), completes);
     });
     test("requestBookOffers", () {

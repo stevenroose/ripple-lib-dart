@@ -39,7 +39,8 @@ class AccountSet extends Transaction {
   int get walletSize => _get(Field.WalletSize);
   set walletSize(int walletSize) => _put(Field.WalletSize, walletSize);
 
-  AccountSet.fromJson(dynamic json) : super._fromJson(json) {
+  AccountSet.fromJson(dynamic json, [bool skipFieldCheck = RippleSerializedObject._DEFAULT_SKIP_FIELDCHECK]) :
+      super._fromJson(json, skipFieldCheck) {
     _assertTransactionType(TransactionType.ACCOUNT_SET);
   }
 

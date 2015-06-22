@@ -37,7 +37,7 @@ class OrderBook extends Object with Events {
   /**
    * Compare two offers so that the better offer comes first.
    */
-  static int _compareByRatio(Offer o1, Offer o2) => o2.ratio.compareTo(o1.ratio);
+  static int _compareByRatio(OfferEntry o1, OfferEntry o2) => o2.ratio.compareTo(o1.ratio);
 
   Stream<OrderBook>       get onOpened => on(OnOpened);
   Stream<OrderBookUpdate> get onUpdate => on(OnUpdate);
@@ -51,15 +51,15 @@ class OrderBook extends Object with Events {
   List<StreamSubscription> _subs = new List<StreamSubscription>();
   bool _keepOpen;
 
-  SplayTreeSet<Offer> _book;
-  SplayTreeSet<Offer> _reverseBook;
+  SplayTreeSet<OfferEntry> _book;
+  SplayTreeSet<OfferEntry> _reverseBook;
 
   OrderBook(Issue takerGets, Issue takerPays, {bool both: true, Remote remote, bool keepOpen})
       : _details = new OrderBookDetails(takerGets, takerPays, both) {
     _remote = remote;
     _keepOpen = keepOpen;
-    _book = new SplayTreeSet<Offer>(_compareByRatio);
-    _reverseBook = new SplayTreeSet<Offer>(_compareByRatio);
+    _book = new SplayTreeSet<OfferEntry>(_compareByRatio);
+    _reverseBook = new SplayTreeSet<OfferEntry>(_compareByRatio);
   }
 
   OrderBookDetails get details => _details;
@@ -69,14 +69,14 @@ class OrderBook extends Object with Events {
   /**
    * An ordered set of offers of the normal side of the order book.
    */
-  Set<Offer> get bids => new UnmodifiableSetView(_book);
+  Set<OfferEntry> get bids => new UnmodifiableSetView(_book);
   /**
    * An ordered set of offers of the reverse side of the order book.
    * Null if [details.both] is false.
    */
-  Set<Offer> get asks => new UnmodifiableSetView(_reverseBook);
+  Set<OfferEntry> get asks => new UnmodifiableSetView(_reverseBook);
   /** Same as [bids]. */
-  Set<Offer> get offers => bids;
+  Set<OfferEntry> get offers => bids;
 
   Future<OrderBook> open({bool keepOpen: false, Remote remote}) {
     if(!_subs.isEmpty)
@@ -158,8 +158,8 @@ class OrderBook extends Object with Events {
   void _handleTransaction(TransactionResult tx) {
     tx.meta.affectedNodes.forEach((AffectedNode node) {
       if(node.ledgerEntryType == LedgerEntryType.OFFER) {
-        Offer offer = node.constructLedgerEntry();
-        Set<Offer> book =
+        OfferEntry offer = node.constructLedgerEntry();
+        Set<OfferEntry> book =
             (offer.takerGets.issue == takerGets && offer.takerPays.issue == takerPays ? _book :
             (offer.takerGets.issue == takerPays && offer.takerPays.issue == takerGets ? _reverseBook : null) );
         if(book == null)
@@ -202,13 +202,13 @@ class OrderBook extends Object with Events {
 
 class OrderBookUpdate {
   final OrderBook book;
-  final Offer oldEntry;
-  final Offer newEntry;
+  final OfferEntry oldEntry;
+  final OfferEntry newEntry;
 
   OrderBookUpdate._(this.book, this.oldEntry, this.newEntry);
 
   bool get isBid {
-    Offer entry = isDelete ? oldEntry : newEntry;
+    OfferEntry entry = isDelete ? oldEntry : newEntry;
     return entry.takerGets.issue == book.takerGets &&
         entry.takerPays.issue == book.takerPays;
   }

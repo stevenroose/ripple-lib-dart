@@ -1,7 +1,7 @@
 part of ripplelib.core;
 
 
-class RippleState extends LedgerEntry {
+class RippleStateEntry extends LedgerEntry {
 
   @override
   Map<Field, FieldRequirement> get _rippleFormat => _rippleFormatMap;
@@ -19,9 +19,9 @@ class RippleState extends LedgerEntry {
       Field.HighQualityOut:       FieldRequirement.OPTIONAL
   }..addAll(LedgerEntry._rippleFormatMap);
 
-  RippleState() : super(LedgerEntryType.RIPPLE_STATE);
+  RippleStateEntry() : super(LedgerEntryType.RIPPLE_STATE);
 
-  RippleState._newInstance() : this();
+  RippleStateEntry._newInstance() : this();
 
   Amount get balance => _get(Field.Balance);
 
@@ -47,7 +47,8 @@ class RippleState extends LedgerEntry {
 
   /* JSON */
 
-  RippleState.fromJson(dynamic json) : super._fromJson(json) {
+  RippleStateEntry.fromJson(dynamic json, [bool skipFieldCheck = RippleSerializedObject._DEFAULT_SKIP_FIELDCHECK]) :
+      super._fromJson(json, skipFieldCheck) {
     _assertLedgerEntryType(LedgerEntryType.RIPPLE_STATE);
   }
 

@@ -85,8 +85,8 @@ class Account extends Object with Events {
   final AccountID id;
 
   // the main account ledger entry
-  AccountRoot _root;
-  AccountRoot get info => _root;
+  AccountRootEntry _root;
+  AccountRootEntry get info => _root;
 
   Map<Issue, TrustLine> _trust;
   Map<Issue, TrustLine> get trustLines => new UnmodifiableMapView(_trust);
@@ -242,7 +242,7 @@ class Account extends Object with Events {
   }
 
   void _handleNewAccountRoot(dynamic accountRoot) {
-    if(accountRoot is AccountRoot) {
+    if(accountRoot is AccountRootEntry) {
       _updateAccountRoot(accountRoot);
     } else if(accountRoot is AffectedNode) {
       _updateAccountRoot(accountRoot.constructLedgerEntry());
@@ -251,7 +251,7 @@ class Account extends Object with Events {
     }
   }
 
-  void _updateAccountRoot(AccountRoot newRoot) {
+  void _updateAccountRoot(AccountRootEntry newRoot) {
     bool balanceChanged = _root != null && _root.balance != newRoot.balance;
     _root = newRoot;
     emit(OnInfoUpdate, this);

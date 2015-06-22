@@ -3,11 +3,13 @@ part of ripplelib.core;
 
 abstract class RippleSerializedObject extends RippleSerialization {
 
+  static const bool _DEFAULT_SKIP_FIELDCHECK = false;
+
   RippleSerializedObject() {
 
   }
 
-  RippleSerializedObject._fromJson(dynamic json, [bool skipFieldCheck = false]) {
+  RippleSerializedObject._fromJson(dynamic json, [bool skipFieldCheck = _DEFAULT_SKIP_FIELDCHECK]) {
     if(json is! Map)
       throw new ArgumentError("Must be a JSON object");
     json.forEach((String key, dynamic value) {

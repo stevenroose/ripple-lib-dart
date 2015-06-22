@@ -56,14 +56,15 @@ part "src/core/transactions/tx/trust_set.dart";
 
 // ledger entries
 part "src/core/ledger/ledger_entry.dart";
-part "src/core/ledger/le/account_root.dart";
-part "src/core/ledger/le/offer.dart";
-part "src/core/ledger/le/ripple_state.dart";
+part "src/core/ledger/le/account_root_entry.dart";
+part "src/core/ledger/le/offer_entry.dart";
+part "src/core/ledger/le/ripple_state_entry.dart";
 
 part "src/core/amount.dart";
 part "src/core/currency.dart";
 part "src/core/flags.dart";
 part "src/core/issue.dart";
+part "src/core/offer.dart";
 part "src/core/path.dart";
 part "src/core/ripple_date_time.dart";
 part "src/core/trust_line.dart";

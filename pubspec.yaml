@@ -20,4 +20,4 @@ dependencies:
   stevenroose: '>=0.1.0'
   websockets: '>=0.1.1'
 dev_dependencies:
-  unittest: any
+  test: any

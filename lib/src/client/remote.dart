@@ -44,10 +44,10 @@ class Remote extends Object with Events {
     _trusted = isTrusted;
     _subscriptionManager = new SubscriptionManager._(this);
     // listen on socket
-    _ws.listen((m) => logger.finer("Message received: $m"), onError: (m) {
-      // something wrong with the stream
-      logger.warning("Error with WebSocket: $m");
-    });
+    _ws.listen((message) {
+      logger.finer("Message received: $message");
+      _handleMessage(message);
+    }, onError: (error) => logger.warning("Error with WebSocket: $error"));
     // make initial server info request
     requestServerInfo();
   }
@@ -66,8 +66,8 @@ class Remote extends Object with Events {
   @override
   String toString() => "Ripple remote on $url";
 
-  SubscriptionManager get subscriptions => _subscriptionManager;
   SubscriptionManager _subscriptionManager;
+  SubscriptionManager get subscriptions => _subscriptionManager;
 
   ServerInfo _info;
   ServerInfo get info => _info;
@@ -75,7 +75,10 @@ class Remote extends Object with Events {
   Future<Response> request(Request request) {
     _pendingRequests[request.id] = request;
     sendMessage(request);
-    return request.onResponse;
+    return request.onResponse.catchError((error) {
+      emit(OnErrorMessage, error);
+      throw error;
+    });
   }
 
   /**
@@ -98,7 +101,7 @@ class Remote extends Object with Events {
 
   /* message handling */
 
-  void handleMessage(String messageString) {
+  void _handleMessage(String messageString) {
     JsonObject message = const RippleJsonCodec().decode(messageString);
     emit(OnMessage, message);
 
@@ -242,6 +245,17 @@ class Remote extends Object with Events {
     req.account = account;
     if(ledger != null)
       req.ledger_index = ledger;
+    // make sure the Offer objects have the account field
+    req.preProcessResponse((JsonObject response) {
+      if(response.status == "success") {
+        AccountID account = response.result.account;
+        for(Offer offer in response.result.offers) {
+          if(offer.account == null)
+            offer.account = account;
+        }
+      }
+      return response;
+    });
     return req;
   }
 

@@ -11,7 +11,8 @@ class OfferCancel extends Transaction {
   int get offerSequence => _get(Field.OfferSequence);
   set offerSequence(int offerSequence) => _put(Field.OfferSequence, offerSequence);
 
-  OfferCancel.fromJson(dynamic json) : super._fromJson(json) {
+  OfferCancel.fromJson(dynamic json, [bool skipFieldCheck = RippleSerializedObject._DEFAULT_SKIP_FIELDCHECK]) :
+      super._fromJson(json, skipFieldCheck) {
     _assertTransactionType(TransactionType.OFFER_CANCEL);
   }
 

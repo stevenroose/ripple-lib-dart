@@ -119,4 +119,7 @@ class ServerState extends Enum {
   static List<ServerState> get values => Enum.values(ServerState);
 
 
+  toJson() => jsonValue;
+
+
 }

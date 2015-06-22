@@ -46,7 +46,7 @@ class TrustLine {
     _peerRippleAllowed = peerRippleAllowed;
   }
 
-  TrustLine.fromRippleState(AccountID referenceAccount, RippleState rs) {
+  TrustLine.fromRippleState(AccountID referenceAccount, RippleStateEntry rs) {
     if(rs.lowLimit.issuer == referenceAccount) {
       _issuer = rs.highLimit.issuer;
       _currency = rs.lowLimit.currency;

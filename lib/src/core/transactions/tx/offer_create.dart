@@ -19,12 +19,14 @@ class OfferCreate extends Transaction {
   set takerPays(Amount takerPays) => _put(Field.TakerPays, takerPays);
 
   DateTime get expiration => new RippleDateTime.fromSecondsSinceRippleEpoch(_get(Field.Expiration));
-  set expiration(DateTime expiration) => _put(Field.Expiration, RippleDateTime.calculateSecondsSinceRippleEpoch(expiration));
+  set expiration(DateTime expiration) =>
+      _put(Field.Expiration, RippleDateTime.calculateSecondsSinceRippleEpoch(expiration));
 
   int get offerSequence => _get(Field.OfferSequence);
   set offerSequence(int offerSequence) => _put(Field.OfferSequence, offerSequence);
 
-  OfferCreate.fromJson(dynamic json) : super._fromJson(json) {
+  OfferCreate.fromJson(dynamic json, [bool skipFieldCheck = RippleSerializedObject._DEFAULT_SKIP_FIELDCHECK]) :
+      super._fromJson(json, skipFieldCheck) {
     _assertTransactionType(TransactionType.OFFER_CREATE);
   }
 

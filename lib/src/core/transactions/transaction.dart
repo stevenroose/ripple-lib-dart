@@ -91,25 +91,25 @@ abstract class Transaction extends RippleSerializedObject {
 
   /* JSON */
 
-  Transaction._fromJson(dynamic json) : super._fromJson(json);
+  Transaction._fromJson(dynamic json, bool skipFieldCheck) : super._fromJson(json, skipFieldCheck);
 
-  factory Transaction.fromJson(dynamic json) {
+  factory Transaction.fromJson(dynamic json, [bool skipFieldCheck = RippleSerializedObject._DEFAULT_SKIP_FIELDCHECK]) {
     var type = json["TransactionType"];
     if(type is! TransactionType)
       type = TransactionType.fromJsonValue(type);
     switch(type) {
       case TransactionType.ACCOUNT_SET:
-        return new AccountSet.fromJson(json);
+        return new AccountSet.fromJson(json, skipFieldCheck);
       case TransactionType.OFFER_CANCEL:
-        return new OfferCancel.fromJson(json);
+        return new OfferCancel.fromJson(json, skipFieldCheck);
       case TransactionType.OFFER_CREATE:
-        return new OfferCreate.fromJson(json);
+        return new OfferCreate.fromJson(json, skipFieldCheck);
       case TransactionType.PAYMENT:
-        return new Payment.fromJson(json);
+        return new Payment.fromJson(json, skipFieldCheck);
       case TransactionType.SET_REGULAR_KEY:
-        return new SetRegularKey.fromJson(json);
+        return new SetRegularKey.fromJson(json, skipFieldCheck);
       case TransactionType.TRUST_SET:
-        return new TrustSet.fromJson(json);
+        return new TrustSet.fromJson(json, skipFieldCheck);
     }
     throw new FormatException("Invalid transaction JSON");
   }

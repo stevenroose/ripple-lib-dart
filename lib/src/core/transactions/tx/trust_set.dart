@@ -19,7 +19,8 @@ class TrustSet extends Transaction {
   LimitAmount get limitAmount => _get(Field.LimitAmount);
   set limitAmount(LimitAmount limitAmount) => _put(Field.LimitAmount, limitAmount);
 
-  TrustSet.fromJson(dynamic json) : super._fromJson(json) {
+  TrustSet.fromJson(dynamic json, [bool skipFieldCheck = RippleSerializedObject._DEFAULT_SKIP_FIELDCHECK]) :
+      super._fromJson(json, skipFieldCheck) {
     _assertTransactionType(TransactionType.TRUST_SET);
   }
 

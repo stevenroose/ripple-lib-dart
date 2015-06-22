@@ -42,7 +42,8 @@ class Payment extends Transaction {
   Hash256 get invoiceId => _get(Field.InvoiceID);
   set invoiceId(Hash256 invoiceId) => _put(Field.InvoiceID, invoiceId);
 
-  Payment.fromJson(dynamic json) : super._fromJson(json) {
+  Payment.fromJson(dynamic json, [bool skipFieldCheck = RippleSerializedObject._DEFAULT_SKIP_FIELDCHECK]) :
+      super._fromJson(json, skipFieldCheck) {
     _assertTransactionType(TransactionType.PAYMENT);
   }
 
