@@ -27,6 +27,7 @@ class PaymentProcess implements Stream<PaymentOption> {
   Future<Response> _finish(PathFindStatus status, Path preference, KeyPair key) {
     List<Path> finalPaths = preference != null ? [preference] : status.paths;
     Payment payment = new Payment(destination, amount, paths: finalPaths);//TODO specify sendMax?
+    // TODO sign
     return _account.submitTransaction(payment, key: key).then((Response response) {
       if(response.successful) {
         cancel();

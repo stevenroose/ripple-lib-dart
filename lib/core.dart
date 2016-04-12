@@ -15,17 +15,15 @@ import "package:enums/enums.dart";
 import "package:stevenroose/byte_sink.dart";
 
 // cherry picking cipher dependencies
-import "package:cipher/api.dart";
-import "package:cipher/digests/ripemd160.dart";
-import "package:cipher/params/key_parameter.dart";
-import "package:cipher/params/asymmetric_key_parameter.dart";
-import "package:cipher/ecc/ecc_base.dart";
-import "package:cipher/ecc/ecc_fp.dart" as fp;
-import "package:cipher/api/ecc.dart";
-import "package:cipher/signers/ecdsa_signer.dart";
-import "package:cipher/digests/sha256.dart";
-import "package:cipher/macs/hmac.dart";
-import "package:cipher/digests/sha512.dart";
+import "package:pointycastle/api.dart";
+import "package:pointycastle/digests/ripemd160.dart";
+import "package:pointycastle/ecc/ecc_base.dart";
+import "package:pointycastle/ecc/ecc_fp.dart" as fp;
+import "package:pointycastle/ecc/api.dart";
+import "package:pointycastle/signers/ecdsa_signer.dart";
+import "package:pointycastle/digests/sha256.dart";
+import "package:pointycastle/macs/hmac.dart";
+import "package:pointycastle/digests/sha512.dart";
 
 
 part "src/core/ripple_encoding.dart";

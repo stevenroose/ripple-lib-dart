@@ -2,7 +2,7 @@ part of ripplelib.core;
 
 
 
-class Offer extends Offer {
+class Offer {
 
   Amount takerGets;
   Amount takerPays;
@@ -18,7 +18,7 @@ class Offer extends Offer {
     takerPays = json["taker_pays"];
     account = json["account"];
     sequence = json["seq"];
-    flags = new Flags(json["flags"]);
+    flags = json["flags"] != null ? new Flags(json["flags"]) : null;
   }
 
   dynamic toJson() => {
@@ -28,13 +28,5 @@ class Offer extends Offer {
     "taker_pays": takerPays,
     "account": account
   };
-
-  Amount get takerGets => takerGets;
-  Amount get takerPays => takerPays;
-
-  int get sequence => sequence;
-  Flags get flags => flags;
-
-  AccountID get  account => account;
 
 }

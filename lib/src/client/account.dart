@@ -184,7 +184,7 @@ class Account extends Object with Events {
     _key = key;
   }
 
-  Future<Response> submitTransaction(Transaction tx, {KeyPair key}) {
+  Future<Response> submitTransaction(Transaction tx, {KeyPair key}) async {
     KeyPair useKey;
     if(key != null) {
       if(key.account == id) {
@@ -197,14 +197,13 @@ class Account extends Object with Events {
     } else {
       throw new StateError("Cannot make transactions without private key");
     }
-    return _remote.ensureUpdatedServerInfo().then((info) {
-      tx.account = id;
-      tx.sequence = _root.sequence + 1;
-      tx.fee = _remote.computeTxFee(tx);
-      tx.sign(useKey);
-      log.fine("Submitting transaction for $id: $tx");
-      return _remote.requestSubmitRaw(tx.toBytes());
-    });
+    await _remote.ensureUpdatedServerInfo();
+    tx.account = id;
+    tx.sequence = _root.sequence + 1;
+    tx.fee = _remote.computeTxFee(tx);
+    tx.sign(useKey);
+    log.fine("Submitting transaction for $id: $tx");
+    return _remote.requestSubmitRaw(tx.toBytes());
   }
 
   PaymentProcess startPayment(AccountID destination, Amount amount) =>

@@ -10,6 +10,13 @@ class Flags {
 
   final int value;
 
+  factory Flags(int value) {
+    if(value != value & 0xffffffff) {
+      throw new ArgumentError("Flags are 32-bit positive values.");
+    }
+    return new Flags._internal(value);
+  }
+
   const Flags._internal(this.value);
 
   @override

@@ -259,11 +259,21 @@ class Remote extends Object with Events {
     return req;
   }
 
-  Future<Response> requestAccountTransactions(dynamic account, {int minLedgerIndex, int maxLedgerIndex, int limit, bool binary, bool forward}) =>
+  Future<Response> requestAccountTransactions(dynamic account,
+                                              { int minLedgerIndex,
+                                                int maxLedgerIndex,
+                                                int limit,
+                                                bool binary,
+                                                bool forward}) =>
   makeAccountTransactionsRequest(account, minLedgerIndex: minLedgerIndex, maxLedgerIndex: maxLedgerIndex, limit: limit,
       binary: binary, forward: forward).request();
 
-  Request makeAccountTransactionsRequest(dynamic account, {int minLedgerIndex, int maxLedgerIndex, int limit, bool binary, bool forward}) {
+  Request makeAccountTransactionsRequest(dynamic account,
+                                         { int minLedgerIndex,
+                                           int maxLedgerIndex,
+                                           int limit,
+                                           bool binary,
+                                           bool forward}) {
     Request req = newRequest(Command.ACCOUNT_TX);
     req.account = account;
     if(limit != null)
@@ -279,10 +289,18 @@ class Remote extends Object with Events {
     return req;
   }
 
-  Future<Response> requestBookOffers(Issue takerPays, Issue takerGets, {AccountID taker, LedgerSelector ledger, int limit, bool proof}) =>
+  Future<Response> requestBookOffers(Issue takerPays, Issue takerGets,
+                                     { AccountID taker,
+                                       LedgerSelector ledger,
+                                       int limit,
+                                       bool proof}) =>
       makeBookOffersRequest(takerPays, takerGets, taker: taker, ledger: ledger, limit: limit, proof: proof).request();
 
-  Request makeBookOffersRequest(Issue takerPays, Issue takerGets, {AccountID taker, LedgerSelector ledger, int limit, bool proof}) {
+  Request makeBookOffersRequest(Issue takerPays, Issue takerGets,
+                                { AccountID taker,
+                                  LedgerSelector ledger,
+                                  int limit,
+                                  bool proof}) {
     Request req = newRequest(Command.BOOK_OFFERS);
     req.taker_pays = takerPays;
     req.taker_gets = takerGets;
@@ -409,8 +427,8 @@ class Remote extends Object with Events {
                                          {List<Issue> currencies, LedgerSelector ledger}) =>
       makeRipplePathFindRequest(sourceAccount, destinationAccount, amount, currencies, ledger: ledger).request();
 
-  Request makeRipplePathFindRequest(AccountID sourceAccount, AccountID destinationAccount, Amount amount, List<Issue> currencies,
-                                    {LedgerSelector ledger}) {
+  Request makeRipplePathFindRequest(AccountID sourceAccount, AccountID destinationAccount, Amount amount,
+                                    List<Issue> currencies, {LedgerSelector ledger}) {
     Request req = newRequest(Command.RIPPLE_PATH_FIND);
     req.source_account = sourceAccount;
     req.destination_account = destinationAccount;

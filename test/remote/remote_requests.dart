@@ -57,7 +57,7 @@ Future main() async {
     });
     test("requestAccountOffers", () {
       expect(remote.requestAccountOffers(me).then((response) {
-        expect(response.result.offers[0].taker_pays.issuer.address, isNotNull);
+        expect(response.result.offers[0].takerPays.issuer.address, isNotNull);
       }), completes);
     });
     test("requestAccountTransactions", () {
