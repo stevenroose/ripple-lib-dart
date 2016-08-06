@@ -60,6 +60,7 @@ class RippleJsonDecoder extends JsonDecoder {
       "engine_result":          (j) => EngineResult.fromName(j),
       "Expiration":             (j) => new RippleDateTime.fromSecondsSinceRippleEpoch(j),
       "Fee":                    (j) => new Amount.fromJson(j),
+      "Flags":                  (j) => new Flags(j),
       "hash":                   (j) => j.length == 64 ? new Hash256(j) : j,
       "issuer":                 (j) => new AccountID.fromJson(j),
       "LedgerEntryType":        (j) => LedgerEntryType.fromJsonKey(j),
