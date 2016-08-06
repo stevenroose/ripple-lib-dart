@@ -7,7 +7,7 @@ import "dart:mirrors";
 import "dart:typed_data";
 
 import "package:asn1lib/asn1lib.dart";
-import "package:crypto/crypto.dart" hide CryptoUtils, Hash;
+import "package:crypto/crypto.dart" hide Hash, Digest;
 import "package:cryptoutils/cryptoutils.dart";
 import "package:bignum/bignum.dart";
 import "package:decimal/decimal.dart";

@@ -4,15 +4,6 @@ abstract class RippleUtils {
 
 
   /**
-   * Calculates the SHA-256 hash of the input data.
-   */
-  static List<int> sha256Digest(List<int> input) {
-    SHA256 digest = new SHA256();
-    digest.add(input);
-    return new Uint8List.fromList(digest.close());
-  }
-
-  /**
    * Calculates the power of any object that has the * operator.
    *
    * Only powers of 1 or higher are allowed.
@@ -80,22 +71,18 @@ abstract class RippleUtils {
   /**
    * Calculates the SHA-256 hash of the input data.
    */
-  static Uint8List singleDigest(Uint8List input) {
-    SHA256 digest = new SHA256();
-    digest.add(input);
-    return new Uint8List.fromList(digest.close());
-  }
+  static List<int> sha256Digest(List<int> input) => sha256.convert(input).bytes;
+
+  /**
+   * Calculates the SHA-256 hash of the input data.
+   */
+  static Uint8List singleDigest(Uint8List input) => sha256Digest(input);
 
   /**
    * Calculates the double-round SHA-256 hash of the input data.
    */
-  static Uint8List doubleDigest(Uint8List input) {
-    SHA256 digest = new SHA256();
-    digest.add(input);
-    SHA256 digest2 = new SHA256()
-      ..add(digest.close());
-    return new Uint8List.fromList(digest2.close());
-  }
+  static Uint8List doubleDigest(Uint8List input)
+      => sha256Digest(sha256Digest(input));
 
   /**
    * Calculates the RIPEMD-160 hash of the given input.
